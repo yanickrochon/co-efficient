@@ -1,0 +1,32 @@
+{
+  "name": "co-coa",
+  "version": "0.0.0-20140318",
+  "description": "An asynchronous template engine based on dust and mustache for `co`.",
+  "author": "Yanick Rochon <yanick.rochon@gmail.com>",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --harmony"
+  },
+  "keywords": [
+    "template",
+    "async",
+    "co",
+    "view",
+    "render"
+  ],
+  "homepage": "https://github.com/yanickrochon/co-coa",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanickrochon/co-coa"
+  },
+  "bugs": {
+    "url": "https://github.com/yanickrochon/co-coa/issues"
+  },
+  "devDependencies": {
+    "semicov": "^0.1.1-2",
+    "should": "^3.1.4",
+    "mocha": "^1.18.2",
+    "co-mocha": "0.0.2"
+  },
+  "license": "MIT"
+}
