@@ -1,7 +1,7 @@
 {
   "name": "co-coa",
-  "version": "0.0.0-20140318",
-  "description": "An asynchronous template engine based on dust and mustache for `co`.",
+  "version": "0.0.0-20140319",
+  "description": "An asynchronous template engine for `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
   "scripts": {
@@ -28,5 +28,8 @@
     "mocha": "^1.18.2",
     "co-mocha": "0.0.2"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "co-fs": "^1.2.0"
+  }
 }

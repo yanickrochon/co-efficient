@@ -5,101 +5,134 @@ An asynchronous template engine for `co`.
 
 ## Configuration
 
-* **sourcePaths** *{String|Array}* : a list of paths where sources may be found. Each
-source template will be fetched from bottom to top (last array item down to the first).
-If a string, must be separated by `path.delimiter`.
+* **sourcePaths** *{String|Array}* : a list of paths where sources may be found.
+Each source template will be fetched from bottom to top (last array item down to
+the first). If a string, must be separated by `path.delimiter`.
 *(default: `['.']`)*
-* **ext** *{String|Array}* : a comma separated list of source extensions if none specified.
-Each extension should start with the comma. *(default `'.coa, .coa.html'`)*
+* **ext** *{String|Array}* : a comma separated list of source extensions if none
+specified. Each extension should start with the comma. *(default `'.coa, .coa.html'`)*
 * **cachePath** *{String}* : if specified, compiled templates will be stored there.
-Otherwise, source templates will always be parsed and compiled at run-time. This value
-should not be the system's temp directory, and should be in the project's path.
-*(default: null)*
+Otherwise, source templates will always be parsed and compiled at run-time. This
+value should not be the system's temp directory, and should be in the project's
+path. *(default: null)*
 
 
 ## Public API
 
-* **helpers** *{Object}* : an object of view helpers. Each value should be a `GeneratorFunction`
-accepting a `Context` object, a `body` string and a `params` object, and should return the
-string to render. See [Helpers](#helpers) for more information.
+* **helpers** *{Object}* : an object of view helpers. Each value should be a
+`GeneratorFunction` accepting a `Context` object, a `body` string and a `params`
+object, and should return the string to render. See [Helpers](#helpers) for more
+information.
 
 
-## Helpers
+## Syntax
 
-A helper is an async function callable from the view script. It is composed of a identifier,
-content bodies, and arguments. Read more about helpers in the documentation. *(TODO)*
+The syntax is very simplistic and minimalistic. All addons should be made through
+helpers. All template control flow sections follow this pattern :
+
+```
+{type{name|literal[:context] [args][/]}[modifiers]}[content][{type{/}}]
+```
 
 
-### Example
+### Helpers
+
+A helpers are async functions callable from the view script. They are only declared
+from JavaScript and cannot be declared inline. They are composed of an identifier,
+an optional context, optional arguments, and a view segment.
+
+The helper function's second argument, the view segment, is the helper's body passed
+as a sub view renderer. The content has been parsed, but not rendered, yet, and
+it's `render` function should be called to retrieve the content. A helper may also
+choose to ignore segment content, too.
+
+Helpers are rendered via `{&{helperName:context.path arg=value/}}`. Where `:context.path`
+and `arg=value` are optional.
+
+
+#### Example
 
 ```javascript
 {
-  "hello": function * (ctx, body, params) {
-    yield processSomethingAsync();
-
-    return '<span class="' + params['class'] + '">Hello ' + body + '!</span>';
+  "hello": function * (ctx, seg, params) {
+    return '<span id="' + params['id'] + '" class="' + params['class'] + '">' +
+           'Hello ' +
+           yield seg.render() +
+           '!</span>';
   }
 }
 ```
 
-Helpers are rendered via `{!helperName/}`. For example
+called from the view script
 
 ```
-<div>{!hello class="red"}{{name}}{/hello}</div>
+<div>{&{hello:user id="user" class="bold"}}{{name}}{&{/}}</div>
 ```
 
-Would output, for example : `<span class="red">Hello John!</span>`.
+Would output, for example : `<span id="user" class="bold">Hello John!</span>`.
 
 
-## Blocks
+### Inline Blocks
 
-A block is a reusable chunk of compiled template. A block is declared with the
-`{#block/}` instruction. It is composed of an identifier, a context and a content
-body. Unlike helpers, blocks cannot have multiple content bodies.
+An inline block is a reusable chunk of compiled template. A block is declared with
+the `{#{block/}}` instruction. It is composed of an identifier, a context and a
+content body. Unlike helpers, blocks cannot have multiple content bodies.
 
-Blocks are declared globally, therefore they are accessible within all views and
-partials. Also, they may be overridden.
+Inline blocks are declared globally, therefore they are accessible within all views
+and partials. Also, they may be overridden.
 
-A block may be rendered using the `{+block/}` instruction. Undeclared blocks will
-be replaced with a warning message in the template. A self closing block (empty block)
-will be rendered as an empty string.
+An inline block may be rendered using the `{+{block/}}` instruction. Undeclared
+blocks will be replaced with a warning message in the template. A self closing block
+(empty block) will be rendered as an empty string.
 
-By default, the current context is transferred to the block when rendering. However,
-a block may define it's own context using `{#block:path.to.context/}`. Also, when
-rendering a block, the specified block context may be adjusted, too, via `{+block:relative.context/}`.
+By default, the current context is transferred to the inline block when rendering.
+However, a block may define it's own context using `{#{block:path.to.context/}}`.
+Also, when rendering a block, the specified block context may be adjusted, too,
+via `{+block:relative.context/}`.
 
 
-### Example
+#### Example
 
 ```
-{#header}
+{#{header}}
   <tr><th>Col 1</th><th>Col 2</th><th>Col 3</th></tr>
-{/header}
+{#{/}}
 
 <table>
-  <thead>{+header/}</thead>
+  <thead>{+{header/}}</thead>
   <tbody>
     <tr><td>Val 1</td><td>Val 2</td><td>Val 3</td></tr>
   </tbody>
-  <tfoot>{+header/}</thead>
+  <tfoot>{+{header/}}</thead>
 </table>
 ```
 
-## Partials
+### Partials
 
-`{>"path/to/partial"/}`, and `{>"path/to/partial":path.to.context/}`
+`{>{"path/to/partial"/}}`, and `{>{"path/to/partial":path.to.context/}}`
 
-
-## Built-in Blocks
 
 ### Array iterations
 
-`{each:context.array}...{/each}`
+`{@{context.array}}...{@{/}}`, and `{{%}}`.
 
 
-### Conditional
+**Note**: the `%` symbol can echoed (i.e. `{{%}}`) or be assigned to helpers'
+argument. (ex: `{&{helper index=%/}}`)
 
-`{if:context.condition}...{else-if:context.else}...{else}...{/if}`
+
+### Loops countdown
+
+`{@{"n"}}..{@{/}}`, and `{{%}}`
+
+
+**Note**: the `%` symbol can echoed (i.e. `{{%}}`) or be assigned to helpers'
+argument. (ex: `{&{helper index=%/}}`)
+
+
+### Conditionals
+
+`{?{context.condition}}...{?{~}}...{?{/}}`
 
 
 ## Contribution
