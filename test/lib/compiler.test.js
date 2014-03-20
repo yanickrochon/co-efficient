@@ -16,7 +16,7 @@ describe('Test compiler', function () {
 
     var template = yield (Compiler.compile)(allTextSegment);
 
-    console.log("template", template);
+    //console.log("template", template);
 
 
   });

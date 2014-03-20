@@ -1,6 +1,6 @@
 {
   "name": "co-coa",
-  "version": "0.0.0-20140319",
+  "version": "0.0.0-20140320",
   "description": "An asynchronous template engine for `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
