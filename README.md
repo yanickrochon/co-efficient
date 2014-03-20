@@ -126,8 +126,8 @@ argument. (ex: `{&{helper index=%/}}`)
 `{@{"n"}}..{@{/}}`, and `{{%}}`
 
 
-**Note**: the `%` symbol can echoed (i.e. `{{%}}`) or be assigned to helpers'
-argument. (ex: `{&{helper index=%/}}`)
+**Note**: the `%` symbol is a built-in context and can be echoed (i.e. `{{%}}`)
+or be assigned to helpers' argument. (i.e. `{&{helper index=%/}}`)
 
 
 ### Conditionals

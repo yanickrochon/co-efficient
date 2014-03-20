@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>{{title}}</title>
+</hea>
+<body>
+  <h1>{#{pageHeader/}}</h1>
+
+  <div>\{100% coverage}</div>
+
+  {?{tags}}
+    <ul>
+      {@{tags}}
+        <li>{{.}}</li>
+      {@{/}}
+    </uL>
+  {?{~}}
+    No tags
+  {?{/}}
+
+</body>
+</html>
