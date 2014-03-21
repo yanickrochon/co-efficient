@@ -5,17 +5,27 @@ var Parser = require('../../lib/parser');
 
 describe('Test Parser', function () {
 
+  function collectValues(obj) {
+    var values = [];
+    for (var key in obj) {
+      values.push(obj[key]);
+    }
+    return values;
+  }
+
   it('should parse text only', function * () {
     var source = 'Hello world!';
     var parsed = yield (Parser.parseString(source));
+    var segValues;
 
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.be.a.String;
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.be.a.String;
 
-    (yield (Parser.parseString('Hello}'))).segments[0].should.equal('Hello}');
+    collectValues((yield (Parser.parseString('Hello}'))).segments)[0].should.equal('Hello}');
   });
 
   it('should parse context', function * () {
@@ -23,9 +33,10 @@ describe('Test Parser', function () {
     var parsed = yield (Parser.parseString(source));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.not.have.ownProperty('type');
-    parsed.segments[0].should.have.ownProperty('context').and.equal('foo.bar');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.not.have.ownProperty('type');
+    segValues[0].should.have.ownProperty('context').and.equal('foo.bar');
   });
 
   it('should parse more contexts', function * () {
@@ -35,11 +46,13 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(4);
-    parsed.segments[0].should.have.ownProperty('context').and.equal('hello');
-    parsed.segments[1].should.be.a.String.and.equal(' ');
-    parsed.segments[2].should.have.ownProperty('context').and.equal('foo.bar');
-    parsed.segments[3].should.have.ownProperty('context').and.equal('buz');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.not.have.ownProperty('type');
+    segValues[0].should.have.ownProperty('context').and.equal('hello');
+    segValues[1].should.be.a.String.and.equal(' ');
+    segValues[2].should.have.ownProperty('context').and.equal('foo.bar');
+    segValues[3].should.have.ownProperty('context').and.equal('buz');
   });
 
   it('should parse block', function * () {
@@ -47,11 +60,12 @@ describe('Test Parser', function () {
     var parsed = yield (Parser.parseString(source));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[0].should.have.ownProperty('closing').and.be.true;
-    parsed.segments[0].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[0].should.not.have.ownProperty('context');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('closing').and.be.true;
+    segValues[0].should.have.ownProperty('name').and.equal('block');
+    segValues[0].should.not.have.ownProperty('context');
   });
 
   it('should parse block with context', function * () {
@@ -59,11 +73,12 @@ describe('Test Parser', function () {
     var parsed = yield (Parser.parseString(source));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[0].should.have.ownProperty('closing').and.be.true;
-    parsed.segments[0].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[0].should.have.ownProperty('context').and.equal('foo.bar');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('closing').and.be.true;
+    segValues[0].should.have.ownProperty('name').and.equal('block');
+    segValues[0].should.have.ownProperty('context').and.equal('foo.bar');
   });
 
   it('should parse block with 1 context param', function * () {
@@ -73,13 +88,13 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[0].should.have.ownProperty('closing').and.be.true;
-    parsed.segments[0].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[0].should.not.have.ownProperty('context');
-    parsed.segments[0].should.have.ownProperty('params').and.be.an.Object;
-    parsed.segments[0].params.should.have.ownProperty('arg').and.have.ownProperty('context').and.equal('foo');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('closing').and.be.true;
+    segValues[0].should.not.have.ownProperty('context');
+    segValues[0].should.have.ownProperty('params').and.be.an.Object;
+    segValues[0].params.should.have.ownProperty('arg').and.have.ownProperty('context').and.equal('foo');
   });
 
   it('should parse block with 1 literal param', function * () {
@@ -87,13 +102,14 @@ describe('Test Parser', function () {
     var parsed = yield (Parser.parseString(source));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(1);
-    parsed.segments[0].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[0].should.have.ownProperty('closing').and.be.true;
-    parsed.segments[0].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[0].should.not.have.ownProperty('context');
-    parsed.segments[0].should.have.ownProperty('params').and.be.an.Object;
-    parsed.segments[0].params.should.have.ownProperty('arg').and.equal('foo');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('closing').and.be.true;
+    segValues[0].should.have.ownProperty('name').and.equal('block');
+    segValues[0].should.not.have.ownProperty('context');
+    segValues[0].should.have.ownProperty('params').and.be.an.Object;
+    segValues[0].params.should.have.ownProperty('arg').and.equal('foo');
   });
 
   it('should parse more blocks', function * () {
@@ -103,17 +119,18 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(4);
-    parsed.segments[0].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[0].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[0].should.not.have.ownProperty('context');
-    parsed.segments[1].should.be.a.String.and.equal(' ');
-    parsed.segments[2].should.have.ownProperty('type').and.equal('+');
-    parsed.segments[2].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[2].should.not.have.ownProperty('context');
-    parsed.segments[3].should.have.ownProperty('type').and.equal('+');
-    parsed.segments[3].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[3].should.not.have.ownProperty('context');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('name').and.equal('block');
+    segValues[0].should.not.have.ownProperty('context');
+    segValues[1].should.be.a.String.and.equal(' ');
+    segValues[2].should.have.ownProperty('type').and.equal('+');
+    segValues[2].should.have.ownProperty('name').and.equal('block');
+    segValues[2].should.not.have.ownProperty('context');
+    segValues[3].should.have.ownProperty('type').and.equal('+');
+    segValues[3].should.have.ownProperty('name').and.equal('block');
+    segValues[3].should.not.have.ownProperty('context');
   });
 
   it('should parse nested blocks', function * () {
@@ -123,17 +140,20 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(3);
-    parsed.segments[0].should.be.a.String.and.equal('Hel');
-    parsed.segments[1].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[1].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[1].should.not.have.ownProperty('context');
-    parsed.segments[1].should.have.ownProperty('segments').and.have.lengthOf(3);
-    parsed.segments[1].segments[0].should.be.a.String.and.equal('lo ');
-    parsed.segments[1].segments[1].should.not.have.ownProperty('type');
-    parsed.segments[1].segments[1].should.have.ownProperty('context').and.equal('name');
-    parsed.segments[1].segments[2].should.be.a.String.and.equal(' ?');
-    parsed.segments[2].should.be.a.String.and.equal(' !');
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.be.a.String.and.equal('Hel');
+    segValues[1].should.have.ownProperty('type').and.equal('#');
+    segValues[1].should.have.ownProperty('name').and.equal('block');
+    segValues[1].should.not.have.ownProperty('context');
+    segValues[1].should.have.ownProperty('segments').and.be.an.Object;
+    segValues[2].should.be.a.String.and.equal(' !');
+
+    segValues = collectValues(segValues[1].segments);
+    segValues[0].should.be.a.String.and.equal('lo ');
+    segValues[1].should.not.have.ownProperty('type');
+    segValues[1].should.have.ownProperty('context').and.equal('name');
+    segValues[2].should.be.a.String.and.equal(' ?');
   });
 
   it('should parse multiline templates', function * () {
@@ -143,12 +163,13 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     parsed.should.have.ownProperty('type').and.equal('root');
-    parsed.should.have.ownProperty('segments').and.have.lengthOf(2);
-    parsed.segments[0].should.be.a.String.and.equal('Hello world!\n  ');
-    parsed.segments[1].should.have.ownProperty('type').and.equal('#');
-    parsed.segments[1].should.have.ownProperty('name').and.equal('block');
-    parsed.segments[1].should.have.ownProperty('line').and.equal(2);
-    parsed.segments[1].should.have.ownProperty('col').and.equal(2);
+    parsed.should.have.ownProperty('segments').and.be.an.Object;
+    segValues = collectValues(parsed.segments);
+    segValues[0].should.be.a.String.and.equal('Hello world!\n  ');
+    segValues[1].should.have.ownProperty('type').and.equal('#');
+    segValues[1].should.have.ownProperty('name').and.equal('block');
+    segValues[1].should.have.ownProperty('line').and.equal(2);
+    segValues[1].should.have.ownProperty('col').and.equal(2);
   });
 
   it('should fail with too many closing blocks', function (done) {
@@ -206,8 +227,8 @@ describe('Test Parser', function () {
   });
 
   it('should escape text', function * () {
-    (yield (Parser.parseString('\\\\n'))).segments[0].should.equal('\\n');
-    (yield (Parser.parseString('\\{'))).segments[0].should.equal('{');
+    collectValues((yield (Parser.parseString('\\\\n'))).segments)[0].should.equal('\\n');
+    collectValues((yield (Parser.parseString('\\{'))).segments)[0].should.equal('{');
   });
 
   it('should fail parsing invalid blocks', function (done) {
