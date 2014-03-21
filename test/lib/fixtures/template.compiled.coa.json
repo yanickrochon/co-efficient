@@ -1,0 +1,146 @@
+{
+  "id": 0,
+  "offset": 0,
+  "length": 377,
+  "line": 1,
+  "col": 0,
+  "segments": {
+    "1": "<!DOCTYPE HTML>\n<html>\n<head>\n  <title>",
+    "2": {
+      "id": 2,
+      "offset": 39,
+      "length": 9,
+      "line": 4,
+      "col": 9,
+      "context": "title"
+    },
+    "3": "</title>\n</hea>\n<body>\n  <h1>",
+    "4": {
+      "id": 4,
+      "offset": 77,
+      "length": 47,
+      "line": 7,
+      "col": 6,
+      "type": "&",
+      "name": "pageHeader",
+      "params": {
+        "title": {
+          "context": "title"
+        },
+        "prefix": "HTML Page"
+      },
+      "closing": true
+    },
+    "5": "</h1>\n\n  <div>{100% coverage}</div>\n\n  ",
+    "6": {
+      "id": 6,
+      "offset": 164,
+      "length": 149,
+      "line": 11,
+      "col": 2,
+      "segments": {
+        "7": "\n    ",
+        "8": {
+          "id": 8,
+          "offset": 178,
+          "length": 99,
+          "line": 12,
+          "col": 4,
+          "segments": {
+            "9": "\n      <ul>\n        ",
+            "10": {
+              "id": 10,
+              "offset": 207,
+              "length": 49,
+              "line": 14,
+              "col": 8,
+              "segments": {
+                "11": "\n          <li>",
+                "12": {
+                  "id": 12,
+                  "offset": 231,
+                  "length": 5,
+                  "line": 15,
+                  "col": 14,
+                  "context": "."
+                },
+                "13": "</li>\n        "
+              },
+              "type": "@",
+              "context": "tags",
+              "closingSegment": {
+                "id": 14,
+                "offset": 250,
+                "length": 6,
+                "line": 16,
+                "col": 8,
+                "type": "@"
+              }
+            },
+            "15": "\n      </ul>\n    "
+          },
+          "type": "?",
+          "context": "tags",
+          "nextSegment": 16
+        },
+        "16": {
+          "id": 16,
+          "offset": 273,
+          "length": 31,
+          "line": 18,
+          "col": 4,
+          "segments": {
+            "17": "\n      No tags\n    "
+          },
+          "type": "?",
+          "headSegment": 8,
+          "context": "tags",
+          "closingSegment": {
+            "id": 18,
+            "offset": 298,
+            "length": 6,
+            "line": 20,
+            "col": 4,
+            "type": "?"
+          }
+        },
+        "19": "\n  "
+      },
+      "type": "#",
+      "name": "tags",
+      "closingSegment": {
+        "id": 20,
+        "offset": 307,
+        "length": 6,
+        "line": 21,
+        "col": 2,
+        "type": "#"
+      }
+    },
+    "21": "\n\n  ",
+    "22": {
+      "id": 22,
+      "offset": 317,
+      "length": 10,
+      "line": 23,
+      "col": 2,
+      "type": "+",
+      "closing": true,
+      "name": "tags"
+    },
+    "23": "\n\n  ",
+    "24": {
+      "id": 24,
+      "offset": 331,
+      "length": 28,
+      "line": 25,
+      "col": 2,
+      "type": ">",
+      "literal": "test/partial",
+      "closing": true,
+      "context": "foo.bar"
+    },
+    "25": "\n\n</body>\n</html>\n"
+  },
+  "type": "root"
+}

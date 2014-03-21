@@ -82,7 +82,7 @@ describe('Test Parser', function () {
   });
 
   it('should parse block with 1 context param', function * () {
-    var source = '{#{block arg=foo/}}';
+    var source = '{&{helper arg=foo/}}';
     var parsed = yield (Parser.parseString(source));
 
     //console.log(JSON.stringify(parsed, null, 2));
@@ -90,7 +90,7 @@ describe('Test Parser', function () {
     parsed.should.have.ownProperty('type').and.equal('root');
     parsed.should.have.ownProperty('segments').and.be.an.Object;
     segValues = collectValues(parsed.segments);
-    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('type').and.equal('&');
     segValues[0].should.have.ownProperty('closing').and.be.true;
     segValues[0].should.not.have.ownProperty('context');
     segValues[0].should.have.ownProperty('params').and.be.an.Object;
@@ -98,15 +98,15 @@ describe('Test Parser', function () {
   });
 
   it('should parse block with 1 literal param', function * () {
-    var source = '{#{block arg="foo"/}}';
+    var source = '{&{helper arg="foo"/}}';
     var parsed = yield (Parser.parseString(source));
 
     parsed.should.have.ownProperty('type').and.equal('root');
     parsed.should.have.ownProperty('segments').and.be.an.Object;
     segValues = collectValues(parsed.segments);
-    segValues[0].should.have.ownProperty('type').and.equal('#');
+    segValues[0].should.have.ownProperty('type').and.equal('&');
     segValues[0].should.have.ownProperty('closing').and.be.true;
-    segValues[0].should.have.ownProperty('name').and.equal('block');
+    segValues[0].should.have.ownProperty('name').and.equal('helper');
     segValues[0].should.not.have.ownProperty('context');
     segValues[0].should.have.ownProperty('params').and.be.an.Object;
     segValues[0].params.should.have.ownProperty('arg').and.equal('foo');
@@ -234,9 +234,6 @@ describe('Test Parser', function () {
   it('should fail parsing invalid blocks', function (done) {
     var sources = [
       '{a{block/}}',
-      '{@{context.foo.bar/}e}',   // self closing iteration not allowed
-      '{?{context.foo.bar/}e}',   // self closing conditionals not allowed
-      '{>{"path/to/partial":context.foo.bar arg1=1 arg2="2"}e}{>{/}}',  // partials cannot have closing blocks
       '{.{block/}}',
       '{"{block/}}',
       '{ab{block/}}',
@@ -244,6 +241,11 @@ describe('Test Parser', function () {
       '{"{block/}}',
       '{ {block/}}',
       '{/{block/}}',
+      '{#{block arg=foo/}}',      // inline block cannot have parameters
+      '{@{context.foo.bar/}e}',   // self closing iteration not allowed
+      '{?{context.foo.bar/}e}',   // self closing conditionals not allowed
+      '{>{"path/to/partial":context.foo.bar arg1=1 arg2="2"/}}',  // partials cannot have parameters
+      '{>{"path/to/partial":context.foo.bar}e}{>{/}}',  // partials cannot have closing blocks
       '{#{block}/}',
       '{#{/}/}',
       '{{{foo/}}',
@@ -348,14 +350,14 @@ describe('Test Parser', function () {
       '{&{"blo\\ ck"/}}',
       '{&{"blo\\/ck"/}}',
       '{&{"blo\\~ck"/}}',
-      '{#{block arg1="\\\\"/}}',
-      '{#{block arg2="\\/"/}}',
-      '{#{block arg3="\\="/}}',
-      '{#{block arg3="\\}"/}}',
-      '{#{block arg3="\\}"}}{#{/}}',
-      '{#{block arg4="/"/}}',
-      '{#{block arg5="="/}}',
-      '{#{block arg6="="   arg7=foo   arg8=""/}}'
+      '{&{helper arg1="\\\\"/}}',
+      '{&{helper arg2="\\/"/}}',
+      '{&{helper arg3="\\="/}}',
+      '{&{helper arg3="\\}"/}}',
+      '{&{helper arg3="\\}"}}{&{/}}',
+      '{&{helper arg4="/"/}}',
+      '{&{helper arg5="="/}}',
+      '{&{helper arg6="="   arg7=foo   arg8=""/}}'
     ];
     var testComplete = 0;
 
@@ -445,12 +447,12 @@ describe('Test Parser', function () {
   });
 
   it('should parse inline block', function * () {
-    yield (Parser.parseString('{#{block:context.foo.bar arg1=1 arg2="2"/}e}'));
-    yield (Parser.parseString('{#{block:context.foo.bar arg1=1 arg2="2"}e}{#{/}}'));
+    yield (Parser.parseString('{#{block:context.foo.bar/}e}'));
+    yield (Parser.parseString('{#{block:context.foo.bar}e}{#{/}}'));
   });
 
   it('should parse partial block', function * () {
-    yield (Parser.parseString('{>{"path/to/partial":context.foo.bar arg1=1 arg2="2"/}e}'));
+    yield (Parser.parseString('{>{"path/to/partial":context.foo.bar/}e}'));
   });
 
   it('should parse loop block', function * () {

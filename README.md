@@ -54,11 +54,11 @@ and `arg=value` are optional.
 
 ```javascript
 {
-  "hello": function * (ctx, seg, params) {
-    return '<span id="' + params['id'] + '" class="' + params['class'] + '">' +
-           'Hello ' +
-           yield seg.render() +
-           '!</span>';
+  "hello": function * (stream, ctx, chunk, params) {
+    stream.write('<span id="' + params['id'] + '" class="' + params['class'] + '">');
+    stream.write('Hello ');
+    yield chunk.render() +
+    stream.write('!</span>');
   }
 }
 ```

@@ -4,19 +4,19 @@ var Compiler = require('../../lib/compiler');
 
 describe('Test compiler', function () {
 
-  var allTextSegment = {
-    block: 'root',
-    segments: [
-      'Hello', ' ', { context: 'name' }, ' !'
-    ]
-  };
+  var compiledSource = __dirname + '/fixtures/template.compiled.coa';
+  var compiledData;
+
+  before(function () {
+    compiledData = require(compiledSource);
+  });
 
 
   it('should compile texts', function * () {
 
-    var template = yield (Compiler.compile)(allTextSegment);
+    var template = yield (Compiler.compile)(compiledData);
 
-    //console.log("template", template);
+    console.log("template", template.length, template);
 
 
   });

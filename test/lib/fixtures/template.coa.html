@@ -4,19 +4,25 @@
   <title>{{title}}</title>
 </hea>
 <body>
-  <h1>{#{pageHeader/}}</h1>
+  <h1>{&{pageHeader title=title prefix="HTML Page"/}}</h1>
 
   <div>\{100% coverage}</div>
 
-  {?{tags}}
-    <ul>
-      {@{tags}}
-        <li>{{.}}</li>
-      {@{/}}
-    </ul>
-  {?{~}}
-    No tags
-  {?{/}}
+  {#{tags}}
+    {?{tags}}
+      <ul>
+        {@{tags}}
+          <li>{{.}}</li>
+        {@{/}}
+      </ul>
+    {?{~}}
+      No tags
+    {?{/}}
+  {#{/}}
+
+  {+{tags/}}
+
+  {>{"test/partial":foo.bar/}}
 
 </body>
 </html>
