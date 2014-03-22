@@ -1,0 +1,16 @@
+{#{list}}
+  {?{.}}
+    <ul>
+      {@{.}}
+      <li>{?{index}}{{index}}{?{key}} (Key={{key}}){?{/}}{?{value}} - {{value}}{?{/}}{?{~}}{{value}}{?{/}}</li>
+      {@{/}}
+    </ul>
+  {?{~}}
+    Empty list
+  {?{/}}
+{#{/}}
+
+<div>Partial content for {{..title}}</div>
+<p>
+	{{paragraph}}
+</p>

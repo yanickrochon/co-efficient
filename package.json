@@ -31,6 +31,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "co-fs": "^1.2.0"
+    "co-fs": "^1.2.0",
+    "co-suspend": "0.0.5"
   }
 }

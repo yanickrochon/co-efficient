@@ -83,7 +83,12 @@ describe('Test context', function () {
     ctx.getContext('tags').data.should.be.an.Array.and.equal(personsContext.tags);
     ctx.getContext('locales.en').data.should.equal('English');
     ctx.getContext('locales.en........locales.en').data.should.equal('English');
+  });
 
+  it('should return property context for empty path values', function () {
+    var ctx = new Context(null, { index: 0 });
+
+    ctx.getContext('index').should.have.ownProperty('data').and.equal(0);
 
   });
 

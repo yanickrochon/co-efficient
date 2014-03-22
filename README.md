@@ -114,16 +114,11 @@ via `{+block:relative.context/}`.
 
 ### Array iterations
 
-`{@{context.array}}...{@{/}}`, and `{{%}}`.
+`{@{context.array}}...{@{/}}` with `{{id}}`, `{{key}}`, and `{{value}}`.
 
 
 **Note**: the `%` symbol can echoed (i.e. `{{%}}`) or be assigned to helpers'
 argument. (ex: `{&{helper index=%/}}`)
-
-
-### Loops countdown
-
-`{@{"n"}}..{@{/}}`, and `{{%}}`
 
 
 **Note**: the `%` symbol is a built-in context and can be echoed (i.e. `{{%}}`)

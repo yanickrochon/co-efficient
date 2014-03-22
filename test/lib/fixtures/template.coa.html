@@ -2,27 +2,17 @@
 <html>
 <head>
   <title>{{title}}</title>
-</hea>
+</head>
 <body>
   <h1>{&{pageHeader title=title prefix="HTML Page"/}}</h1>
 
   <div>\{100% coverage}</div>
 
-  {#{tags}}
-    {?{tags}}
-      <ul>
-        {@{tags}}
-          <li>{{.}}</li>
-        {@{/}}
-      </ul>
-    {?{~}}
-      No tags
-    {?{/}}
-  {#{/}}
+  {>{"partials/test":foo.bar/}}
 
-  {+{tags/}}
-
-  {>{"test/partial":foo.bar/}}
+  {+{list:listObj/}}
+  {+{list:listArr/}}
+  {+{list:counter/}}
 
 </body>
 </html>

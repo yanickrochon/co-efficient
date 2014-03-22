@@ -13,10 +13,7 @@ describe('Test compiler', function () {
 
 
   it('should compile texts', function * () {
-
-    var template = yield (Compiler.compile)(compiledData);
-
-    console.log("template", template.length, template);
+    var compiled = yield (Compiler.compile)(compiledData);
 
 
   });
