@@ -30,11 +30,10 @@ could make the parser, or the compiler fail, or make the renderer engine behave 
 * **Optimizations** : The compiler is trying to optimize the template as best as it can,
 and the result is quite good so far. But it *can* be improved! Also, rendering the template
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.
-* **Features** : Even though this project is meant to be lightweight and extendable
-through [helpers](#helpers), some features may still be missing. Since this project
-belongs is open source, new features will come as needed from the user base. For example,
-a rendering/streaming timeout could be useful. Or perhaps built-in support for rendering any
-given templates as string instead of files.
+* **Features** : Even though this project is meant to be lightweight and extendable, some
+features may still be missing. Since this project belongs is open source, new features will
+come as needed from the user base. For example, a rendering/streaming timeout could be useful.
+Or perhaps built-in support for rendering any given templates as string instead of files.
 
 
 ## Features
@@ -43,7 +42,7 @@ given templates as string instead of files.
 * COmpiled templates are cached, much like `require`'s behaviour
 * 100% Asynchronous using `co` and `--harmony-generators`
 * Templates are streamable using standard `stream.Writable` interfaces
-* Extendable through [`helpers`](#helpers)
+* Extendable through [`helpers`](#helpers), and [custom blocks](#custom-blocks).
 * Template includes through [partials](#partials)
 * Most blocks support context switching for increased template reusability
 * Shared reusable blocks declarations across
@@ -436,6 +435,78 @@ block does.
 ### Block Modifier Flags
 
 *Not implemented.*
+
+
+### Custom Blocks
+
+**DISCLAIMER** : This section is for advanced tempalte usage!
+
+When [Helpers](#helpers) are just not enough, it is possible to extend the template
+compiler to include custom block compilation. Unlike helpers, however, these
+extensions are global as they are defined directly with the parser and compiler.
+
+Custom blocks may not override built-in blocks, and must be defined using a single
+valid block identifier. Block identifiers are case-sensitive within a template! This
+means that one could register `a` and `A` and be two completely different blocks.
+
+#### Custom Blocks, Step 1 : Parser Rules
+
+Compiling a template requires two steps. The parser is the first step. To register
+a new block, it must be registered with the parser or the template will generate
+an error at parse-time. Parser rules are simple, but must be followed strictly,
+unless you know what you're doing! A typical rule looks like this :
+
+```
+{
+  openingContent: 'inBlock',
+  validContent: { 'name': true, 'context': true, 'params': true },
+  maxSiblings: Number.MAX_VALUE,
+  selfClosing: true,
+  closeBlock: true
+}
+```
+
+* **openingContent** *{String}* : tells in what state the parser should be when
+parsing the block's segment identifier. The possible values are `inName`, `inContext`
+or `inParam`. Since all blocks follow the same syntax (see [Syntax](#syntax)), once
+a block state is `inContext`, it means that the block has no `inName` state.
+* **validContent** *{Object}* : enables content states for the given block. There
+should be at least one content enabled.
+* **maxSiblings** *{Numeric}* : how many content bodies, max, the block can have?
+To disable this feature and prevent a template from declaring a content body for
+the block, set this value to a `false` (or any falsy value).
+* **selfClosing** *{boolean}* : whether or not the block can be self closing (i.e.
+`{#{block/}}`) or not. If `closeBlock` is `false`, this value **must** be `true`.
+* **closeBlock** *{boolean}* : whether or not the block can have an external closing
+block (i.e. `{#{block}}{#{/}}`) or not. If `selfClosing` is `false, this value **must**
+be `true`.
+
+```javascript
+Parser.registerBlockRule(id, options);
+Parser.unregisterBlockRule(id);
+```
+
+Where `id` is the block identifier and `options` an object as described above.
+
+
+#### Custom Blocks, Step 2 : Compiler Renderers
+
+To actually compile the template into an executable one, all blocks are rendered
+by a block segment renderer. Each renderer should match a parser rule, or an
+`CompilerException` will be thrown at compile-time.
+
+```javascript
+Compiler.registerBlockRenderer(id, renderer);
+Compiler.unregisterBlockRenderer(id);
+```
+
+Where `id` is the block identifier and `renderer` a `thunk` or `GeneratorFunction`.
+
+The renderer function's signateur should be `(compiledData, segValue, segKey, segments, engine)`,
+and each argument is defined as :
+
+* **compiledData** *{Object}* : an object of compiled data so far. The object contains different
+sections that will be concatenated by the compiler at finishing time.
 
 
 ## Contribution
