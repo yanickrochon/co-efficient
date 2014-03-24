@@ -4,7 +4,7 @@ var Compiler = require('../../lib/compiler');
 
 describe('Test compiler', function () {
 
-  var compiledSource = __dirname + '/fixtures/template.compiled.coa';
+  var compiledSource = __dirname + '/fixtures/template.compiled.coeft';
   var compiledData;
 
   before(function () {

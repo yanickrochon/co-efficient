@@ -58,10 +58,9 @@ given templates as string instead of files.
 
 ## Configuration
 
-* **sourcePaths**:*{String|Array}* - a list of paths where sources may be found.
-Each source template will be fetched from first to last, until a file exists. If
-a string is specified, eath path must be separated with a `path.delimiter`.
-*(default: `['.']`)*
+* **paths**:*{String|Array}* - a list of paths where sources may be found. Each
+source template will be fetched from first to last, until a file exists. If a string
+is specified, eath path must be separated with a `path.delimiter`. *(default: `['.']`)*
 * **ext**:*{String|Array}* - a list of source extensions to be appended at the end
 a the template name. Note that the engine will also try to look for an extensionless
 file as well, as a last resort, if nothing else is found first. Each extension should
