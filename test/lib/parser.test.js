@@ -464,7 +464,7 @@ describe('Test Parser', function () {
   });
 
   it('should parse file', function * () {
-    var source = __dirname + '/fixtures/template.coa.html';
+    var source = __dirname + '/fixtures/template.coeft.html';
     var parsed = yield (Parser.parseFile(source));
 
     //console.log(JSON.stringify(parsed, null, 2));

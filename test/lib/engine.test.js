@@ -9,11 +9,10 @@ describe('Test engine', function () {
 
     Engine.config.paths = [__dirname + '/fixtures'];
     Engine.helpers.pageHeader = function * (stream, ctx, chunk, params) {
-      //console.log(params);
       stream.write('**HEADER** : ');
-      stream.write(params.prefix);
+      stream.write(params.prefix || '');
       stream.write(' - ');
-      stream.write(params.title);
+      stream.write(params.title || '');
     };
 
   });
@@ -41,6 +40,12 @@ describe('Test engine', function () {
 
     //console.log(html);
 
+  });
+
+  it('should render file with no data', function * () {
+    var html = yield Engine.render('template');
+
+    //console.log(html);
   });
 
 });

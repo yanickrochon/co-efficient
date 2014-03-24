@@ -89,7 +89,18 @@ describe('Test context', function () {
     var ctx = new Context(null, { index: 0 });
 
     ctx.getContext('index').should.have.ownProperty('data').and.equal(0);
+    ctx.getContext('index.foo.bar').should.have.ownProperty('data').and.eql(null);
+  });
+
+  it('should branch context', function () {
+    var ctx = new Context(null, 'foo');
+    var branch1 = ctx.push('bar1').push('buz');
+    var branch2 = ctx.push('bar2').push('meh');
+
+    ctx.push('bar').push('buz').getContext('..').data.should.equal('foo');
 
   });
+
+
 
 });

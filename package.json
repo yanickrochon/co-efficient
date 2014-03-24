@@ -1,7 +1,7 @@
 {
-  "name": "co-coa",
+  "name": "co-efficient",
   "version": "0.0.0-20140321",
-  "description": "An asynchronous template engine for `co`.",
+  "description": "An efficient asynchronous template engine for `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "co-fs": "^1.2.0",
-    "co-suspend": "0.0.5"
+    "co-fs": "^1.2.0"
   }
 }
