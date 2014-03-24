@@ -3,24 +3,30 @@ var Engine = require('../../lib/engine');
 
 describe('Test engine', function () {
 
+  var engine;
+
   this.timeout(500);
 
   before(function () {
-
-    Engine.config.paths = [__dirname + '/fixtures'];
-    Engine.helpers.pageHeader = function * (stream, ctx, chunk, params) {
-      stream.write('**HEADER** : ');
-      stream.write(params.prefix || '');
-      stream.write(' - ');
-      stream.write(params.title || '');
-    };
-
+    engine = Engine({
+      config: {
+        paths: [__dirname + '/fixtures'],
+      },
+      helpers: {
+        pageHeader: function * (stream, ctx, chunk, params) {
+          stream.write('**HEADER** : ');
+          stream.write(params.prefix || '');
+          stream.write(' - ');
+          stream.write(params.title || '');
+        }
+      }
+    });
   });
 
 
   it('should render files', function * () {
 
-    var html = yield Engine.render('template', {
+    var html = yield engine.render('template', {
       title: 'Hello world!',
       listObj: {
         'good': 'Good',
@@ -43,7 +49,7 @@ describe('Test engine', function () {
   });
 
   it('should render file with no data', function * () {
-    var html = yield Engine.render('template');
+    var html = yield engine.render('template');
 
     //console.log(html);
   });
