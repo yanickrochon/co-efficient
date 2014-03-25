@@ -1,6 +1,6 @@
 {
   "name": "co-efficient",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An efficient asynchronous template engine for `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
