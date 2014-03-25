@@ -441,14 +441,33 @@ return the previous context (before entering the iterator).
 
 #### Array Iterators
 
-`{@{context.array}}...{@{/}}` with `{{.id}}`, and `{{.value}}`.
+Array iterators are rendered using the `{@{context}}{@{/}}` instruction, where
+`context` should be an array, and the iteration will be for each element of the
+array. The context inside the block segment is the array's element currently
+being processed. Also, a parant context will be inserted, containing the current
+element's value and index within the array. For example, given a context's value
+of `{ states: ['On', 'Off', 'Undefined'] }` : `* {@{states}}{{.index}}={{.}} * {@{/}}`
+will output : `* 0=On * 1=Off * 2=Undefined * `.
+
+**NOTE**: inside the iterator block, getting the parent context (i.e. `{{..}}` will
+return the iterator's current state; inside the iterator block, `{{.index}}` is the
+iterator index and `{{.value}} === {{.}}`. The parent context of this parent context
+(i.e. `{{...}}`) returns the previous context (before entering the iterator).
 
 
 #### Object iterators
 
-Object iterators
+Object iterators are like array iterators, but adds a `{{.key}}` to the iterator's
+parent context, to retrieve the current object's key being processed. For example,
+given a context's value of `{ states: { 'on':1, 'off':2, 'undefined':3 } }` :
+`* {@{states}}{{.key}}={{.}}({{.index}}) * {@{/}}` will output
+`* on=1(0) * off=2(1) * undefined=3(2) *`.
 
-`{@{context.array}}...{@{/}}` with `{{.id}}`, `{{.key}}`, and `{{.value}}`.
+**NOTE**: inside the iterator block, getting the parent context (i.e. `{{..}}` will
+return the iterator's current state; inside the iterator block, `{{.index}}` is the
+iterator index, `{{.key}} is the iterator's current object's key, and `{{.value}} === {{.}}`.
+The parent context of this parent context (i.e. `{{...}}`) returns the previous context
+(before entering the iterator).
 
 
 ### Conditionals
