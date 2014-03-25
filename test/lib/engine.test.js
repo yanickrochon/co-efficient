@@ -44,7 +44,7 @@ describe('Test engine', function () {
       }
     });
 
-    console.log(html);
+    //console.log(html);
 
   });
 
