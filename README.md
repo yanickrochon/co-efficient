@@ -408,7 +408,18 @@ example:
 
 ### Partials
 
-`{>{"path/to/partial"/}}`, and `{>{"path/to/partial":path.to.context/}}`
+Partials are basically rendering an external template and stream it's output
+to the current `stream.Writable`. Optionally, the partial's initial context
+may be specified. Partials are rendered with the `{>{"path/to/partial":context/}}`
+instruction (`context` optional).
+
+Rendering the partial from a template is the equivalent of calling
+`engine.stream(writer, name, ctx.data, false, engine)`. Any declared inline blocks
+within the partials will be available at the next call in the template.
+
+**NOTE**: wherever inline blocks are declared, they are globally available across
+any rendered partial and template at render-time, but only as they are encountered
+by at render-time.
 
 
 ### Array iterations
@@ -458,7 +469,7 @@ unless you know what you're doing! A typical rule looks like this :
 
 ```
 {
-  openingContent: 'inBlock',
+  openingContent: 'inName',
   validContent: { 'name': true, 'context': true, 'params': true },
   maxSiblings: Number.MAX_VALUE,
   selfClosing: true,
@@ -502,11 +513,79 @@ Compiler.unregisterBlockRenderer(id);
 
 Where `id` is the block identifier and `renderer` a `thunk` or `GeneratorFunction`.
 
-The renderer function's signateur should be `(compiledData, segValue, segKey, segments, engine)`,
+The renderer function's signateur should be `(compiledData, segValue, segKey, segments)`,
 and each argument is defined as :
 
 * **compiledData** *{Object}* : an object of compiled data so far. The object contains different
 sections that will be concatenated by the compiler at finishing time.
+* **segValue** *{Object}* : the current segment block being processed. Content bodies can be
+processed from the `segment.segments` array.
+* **segKey** *{Numeric}* : the segment id, where `segments[segKey] === segValue`.
+* **segments** *{numeric}* : the object containing the current `segValue` object and all it's
+siblings. Some segments have multiple content bodies, which can be fetched using, for example,
+`segments[segValue.nextSegment]` or `segments[segValue.headSegment]`.
+
+**NOTE**: more details on these arguments will be documented soon.
+
+#### Example
+
+```javascript
+Parser.registerBlockRule('b', {
+  openingContent: 'inParam',
+  validContent: { 'params': true },
+  maxSiblings: false,
+  selfClosing: true
+});
+Compiler.registerBlockRenderer('b', bookRenderer);
+Engine.on('internalEngineCreated', function init(internalEngine) {
+  internalEngine.b = getBookJson;
+});
+
+/**
+Block : {b{isbn="value"/}}
+*/
+function * bookRenderer(cData, sValue, sKey, segments) {
+  if (typeof segValue.params['isbn'] === 'string') {
+    return 'stream.write(yield(' + this.OBJ_ENGINE + '.b)(' +
+      this.quote(segValue.params['isbn']) + '));';
+  } else if (segValue.params['isbn'] && segValue.params['isbn'].context) {
+    return 'stream.write(yield(' + this.OBJ_ENGINE + '.b)(' +
+      this.OBJ_CONTEXT + '.getContext(' + quote(segValue.params['isbn'].context) + ').data));';
+  } else {
+    return 'stream.write("No ISBN# in template");';
+  }
+}
+
+/**
+Called by the template at render-time
+*/
+function * getBookJson(isbn) {
+  var book;
+
+  /* get book data */
+
+  if (book) {
+    return '<span class="title">' + book.title + '</span> ' +
+           '<span class="author">by ' + book.author + '</span>';
+  } else {
+    return 'Unknown book!';
+  }
+}
+```
+
+Now, a template such as
+
+```
+<div>{b{isbn="ISBN-13: 978-1-937785-73-4"/}}</div>
+<div>{b{isbn="foo!"/}}</div>
+```
+
+Might render something like
+
+```
+<div><span class="title">Node.js the Right Way: Practical, Server-Side JavaScript That Scales</span> <span class="author">by Jim R. Wilson</span></div>
+<div>Unknown book!</span>
+```
 
 
 ## Contribution
