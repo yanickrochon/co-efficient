@@ -422,10 +422,33 @@ any rendered partial and template at render-time, but only as they are encounter
 by at render-time.
 
 
-### Array iterations
+### Iteratiors
+
+Generating lists and chunks of text by processing collections of data is one of the
+essence of templates. The Efficient engine supports three kinds of data iterators.
+
+#### Numerical Iterators
+
+Numerical iterators is like any standard `for (i=0...n)` block. They are de rendered
+using the `{@{"number"}}{@{/}}` instruction, where `"number"` should be a numeric
+literal, and the iterations will be from `0` to `number - 1`. The context inside the
+block segment is the iterator's current value. For example :
+`<div>{@{"3"}}{{.}}{@{/}}</div>`, will render : `<div>012</div>`.
+
+**NOTE**: inside the iterator block, getting the parent context (i.e. `{{..}}` will
+return the previous context (before entering the iterator).
+
+
+#### Array Iterators
+
+`{@{context.array}}...{@{/}}` with `{{.id}}`, and `{{.value}}`.
+
+
+#### Object iterators
+
+Object iterators
 
 `{@{context.array}}...{@{/}}` with `{{.id}}`, `{{.key}}`, and `{{.value}}`.
-
 
 
 ### Conditionals
