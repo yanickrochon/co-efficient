@@ -64,7 +64,7 @@ is specified, eath path must be separated with a `path.delimiter`. *(default: `[
 a the template name. Note that the engine will also try to look for an extensionless
 file as well, as a last resort, if nothing else is found first. Each extension should
 start with the dot. If a string is specified, it must be comme delimited.
-*(default `'.coa, .coa.html'`)*
+*(default `'.cooft, .coeft.html'`)*
 
 
 ## Public API
