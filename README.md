@@ -472,7 +472,30 @@ The parent context of this parent context (i.e. `{{...}}`) returns the previous 
 
 ### Conditionals
 
-`{?{context.condition}}...{?{~}}...{?{/}}`
+Conditional blocks are rendered using the `{?{context}}{?{~}}{?{/}}` instruction,
+where `context` is evaluated into a truthy or falsy value. This block is equivalent
+to the programmatic `if (context) ... else ... endif` statement. If `context` is
+true, then the first block segment`s content body is rendered, otherwise the second
+(if provided) is rendered.
+
+
+#### Example
+
+```
+{?{authUser}}
+  <div>Welcom {{authUser.identify}} !</div>
+{?{/}}
+
+<ul>
+  {?{tags}}
+    {@{tags}}
+      <li>{{.}}
+    {@{/}}
+  {?{~}}
+    <li>No tags</li>
+  {?{/}}
+</ul>
+```
 
 **NOTE**: conditional blocks are the only ones that do not change context. This
 is so to avoid confusion within the "else" (`{?{~}}`) block, and because they
@@ -480,9 +503,42 @@ do not semantically encapsulate a different context and because they don't
 requiert modifying the context to push additional information as the iteration
 block does.
 
+
 ### Block Parameters
 
-*TODO*
+Block parameters are only used whith [block helpers](#helpers). They allow passing
+arguments to the helper function callback from the template.
+
+A block may contain as many parameters as needed. Each are declared using the pattern
+`paramName=paramValue` and `paramValue` may be a literal or a context.
+
+#### Example
+
+The following example illustrate a helper retrieving an external page from the
+template :
+
+```javascript
+{
+  "http": function * (stream, ctx, chunk, params) {
+    var html;
+
+    try {
+      html = yield httpRequest(params.method || 'GET', params.url);
+    } catch (e) {
+      html = e.message || e;
+    }
+
+    stream.write(html);
+  }
+}
+```
+
+```
+{&{http method="GET" url=page.url/}}
+```
+
+The block segment will be replaced by the helper's result; some HTML content or
+an error message.
 
 
 ### Block Modifier Flags
