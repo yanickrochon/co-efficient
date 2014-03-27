@@ -79,7 +79,7 @@ var html = yield engine.render('foo/bar', { foo: 'bar' });
 extensions when resolving a template, if specified as a string. (See [
 * *[static]* **registerModifier** *(modifier:String, callback:Function)* - register a
 template's block segment modifier. A modifier will transform the output of that block
-at render-time. See [Block Modifier Flags](#block-modifier-flags).
+at render-time. See [Block Modifiers](#block-modifiers).
 * *[static]* **unregisterModifier** *(modifier:String)* - unregister a template's block
 modifier.
 * *[static]* **modifiers**:*{Object}* - returns the registered modifiers. This object
