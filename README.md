@@ -17,14 +17,6 @@ about it. The project was born on March 17, 2014, but it is already working quit
 
 ### TODO
 
-* **Implement modifiers** *(partially implemented)* : Block segments can make use of
-modifier flags when rendering. These modifier flags are parsed, but not compiled. This
-feature should be extendable like helpers. They should receive a string and should output
-a string.
-* **Data Formatters** : At the moment, there are no custom data formatter support. This is
-planned for later versions! And it is a *must have*. Data formatters should be registered
-as the key being a validator function, and it's value should be a generator function receiving
-a single argument; the data, and return a string. Data formatters should always return a string!
 * **More testing!** : There is a 96% branch coverage, however it is not as solid as I'd like
 it to be. For example, there *may* be use cases that are not convered in the tests that
 could make the parser, or the compiler fail, or make the renderer engine behave abnormally.
@@ -284,21 +276,22 @@ The syntax is very simplistic and minimalistic. All addons should be made throug
 helpers. All template control flow sections follow this pattern :
 
 ```
-{type{name|literal[:context] [args][/]}[modifiers]}[content][{type{/}}]
+{type{name|literal:context args/}modifiers}content{type{/}}
 ```
 
-A template is composed of segments: block segments and body segments.
+Where each part may or may not be optional, depending the sgement. A template is
+composed of segments:
 
 * **Block Segments** are blocks declared using the pattern above. They are parsed and compiled
-as template instructions.
-* **Body Segments** are string contents and are written as is in the compiled templates.
+as dynamic template instructions.
+* **Text Segments** are static string contents and are written as as in the compiled templates.
 
 
 ### Context Output
 
 The most basic thing a template needs is token replacements. These are not actual
-block segments, but will simly output any context given, formatted as a string. Using the
-`Engine`'s data formatter system.
+block segments, but will simply output any given context, as string, using the
+`Engine`'s data formatter system and optional [modifiers](#modifiers).
 
 #### Example
 
@@ -307,9 +300,11 @@ block segments, but will simly output any context given, formatted as a string. 
 {{foo}}    -> output 'foo' from the current context
 {{..}}     -> output the parent context
 {{.foo}}   -> output the context 'foo' from the parent context
+{{foo}U}   -> output 'foo', modified using the uppercase (`U`) modifier
 ```
 
-Context output may be used anywhere in body segments.
+Context output may be used anywhere within text segments.
+
 
 ### Helpers
 
@@ -594,9 +589,13 @@ The block segment will be replaced by the helper's result; some HTML content or
 an error message.
 
 
-### Block Modifier Flags
+### Block Modifiers
 
-*Not implemented.*
+Modifiers are text transformer. They are applied as text is sent through the
+`stream.Writable` instance. They are applied in the order they are declared.
+
+For example : `Hello {{name}leU}!` might be rendered as `Hello D%27OH!' (lowercase,
+escape, then uppercase).
 
 
 ### Custom Blocks
@@ -648,7 +647,8 @@ Parser.registerBlockRule(id, options);
 Parser.unregisterBlockRule(id);
 ```
 
-Where `id` is the block identifier and `options` an object as described above.
+Where `id` is the block identifier and `options` an object as described above. The
+value for the block identifier should match this pattern : `[a-zA-Z0-9_\-*^$%<"µ]`.
 
 
 #### Custom Blocks, Step 2 : Compiler Renderers
@@ -754,13 +754,9 @@ Since this object is not really used, except when customizing the Efficient Engi
 this API is given as reference only.
 
 * **helpers**:*{Object}* - a direct reference to the `engine`'s declared helpers object.
-* **modifiers**:*{Object}* - a direct reference ot the `Engine`'s (static) declared
-modifiers object.
 * **stream** *(name:String, ctx:Context, blocks:Object)* - this
 generator function will render any template given by name using the underlaying engine
 and stream, using the specified options.
-* **format** *(value:mixed)*:*{String}* - format the specified value using the registered
-`Engine`'s formatters.
 * **iterator** *(value:mixed)*:*{Iterator}* - returns an iterator object for the given
 value. The value may be a literal (numeric), an array or an object. See [Iterators](#iterators)
 for a documented behaviour of the iterator.
@@ -774,6 +770,67 @@ generator function) to `co`.
 **NOTE**: instances of `InternalEngine` are not extendable after they are created.
 However, to add custom properties to an instance, the `engine`'s `internalEngineCreated`
 event must be listened to, which receives the instance before it is frozen.
+
+
+### Custom Modifiers
+
+Like custom blocks, custom modifiers can be used to transform the chunks of data before
+it is sent to the `stream.Writable`. Registering modifiers is slightly easier than
+block segments!
+
+
+#### Custom Modifiers, Step 1 : Parser Registration
+
+The `Parser` validates very modifiers it encounters. Even if the engine also validates
+for invalid modifiers, this is to prevent applications that would simply cache templates
+and render them at a later time.
+
+Simply call `Parser.registerBlockModifier(char);` or `Parser.unregisterBlockModifier(char);`
+with the modifier desired value. A modifier must be a single character and must match
+the following pattern : `[a-zA-Z0-9_\-*^$&!?#%<>"µ]`.
+
+
+#### Custom Modifiers, Step 2 : Engine Registration
+
+A modifier simply convert a given value into a string. For this reason, there is no
+need for a generator function or any other async callback. Simply register a
+function to the `Engine` with the same modifier `char` registered at step 1.
+
+```javascript
+Engine.registerModifier(char, fn);
+Engine.unregisterModifier(char);
+```
+
+Where `char` should match the exact same value as registered to the `Parser` and
+`fn` is a function receiving a single argument, and should return a string.
+
+**NOTE**: because modifiers may be composed with other modifiers, expect the received
+value to be something else than a string! The modifier function might simply return
+the value if it's already a string, for example.
+
+
+#### Example
+
+Registering a mask modifier that will transform any chunk of text into `*` chars.
+
+```javascript
+Parser.registerBlockModifier('*');
+Engine.registerModifier('*', function mask(value) {
+  var len;
+  var maskedValue = '';
+
+  value = String(value);
+  len = value.length;
+
+  while (len-- > 0) {
+    maskedValue += '*';
+  }
+
+  return maskedValue;
+});
+```
+
+Now, a template like : `<div>{{user.pass}*}</div>` might render like `<div>*********</div>`.
 
 
 ## Contribution

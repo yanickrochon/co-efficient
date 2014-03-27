@@ -386,8 +386,8 @@ describe('Test Parser', function () {
   it('should parse flags', function (done) {
     var sources = [
       '{#{block/}e}',
-      '{#{block/}E}',
-      '{#{block/}eE}',
+      '{#{block/}u}',
+      '{#{block/}eU}',
     ];
     var testComplete = 0;
 
