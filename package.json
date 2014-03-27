@@ -14,13 +14,13 @@
     "view",
     "render"
   ],
-  "homepage": "https://github.com/yanickrochon/co-coa",
+  "homepage": "https://github.com/yanickrochon/co-efficient",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yanickrochon/co-coa"
+    "url": "https://github.com/yanickrochon/co-efficient"
   },
   "bugs": {
-    "url": "https://github.com/yanickrochon/co-coa/issues"
+    "url": "https://github.com/yanickrochon/co-efficient/issues"
   },
   "devDependencies": {
     "semicov": "^0.1.1-2",
