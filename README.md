@@ -60,10 +60,16 @@ the template. If the tempalte is not compiled, it will automatically invoke the
 A typical use of the template engine is
 
 ```javascript
-Engine.config.paths = [ 'path/to/view/tempaltes' ];
+var Engine = require('co-efficient').Engine;
+
+var engine = new Engine({
+  config: {
+    paths: [ 'path/to/view/tempaltes' ]
+  }
+});
 
 // render 'path/to/view/tempaltes/foo/bar.coeft.html'
-var html = yield Engine.render('foo/bar', { foo: 'bar' });
+var html = yield engine.render('foo/bar', { foo: 'bar' });
 ```
 
 
