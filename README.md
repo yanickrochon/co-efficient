@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/co-efficient.png?compact=true)](https://nodei.co/npm/co-efficient/)
 
-An efficient asynchronous template engine for `co`.
+An Efficient and lightweight asynchronous template Engine using `co`.
 
 
 ## Preamble
@@ -17,12 +17,13 @@ about it. The project was born on March 17, 2014, but it is already working quit
 
 ### TODO
 
-* **Implement modifiers** : Block segments can make use of modifier flags when rendering.
-These modifier flags are parsed, but not compiled. This feature should be extendable like
-helpers. They should receive a string and should output a string.
+* **Implement modifiers** *(partially implemented)* : Block segments can make use of
+modifier flags when rendering. These modifier flags are parsed, but not compiled. This
+feature should be extendable like helpers. They should receive a string and should output
+a string.
 * **Data Formatters** : At the moment, there are no custom data formatter support. This is
 planned for later versions! And it is a *must have*. Data formatters should be registered
-as the key being the data `typeof` value, and it's value should be an async function receiving
+as the key being a validator function, and it's value should be a generator function receiving
 a single argument; the data, and return a string. Data formatters should always return a string!
 * **More testing!** : There is a 96% branch coverage, however it is not as solid as I'd like
 it to be. For example, there *may* be use cases that are not convered in the tests that
@@ -30,6 +31,7 @@ could make the parser, or the compiler fail, or make the renderer engine behave 
 * **Optimizations** : The compiler is trying to optimize the template as best as it can,
 and the result is quite good so far. But it *can* be improved! Also, rendering the template
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.
+* **More Events** : Add events to the parser and compiler.
 * **Features** : Even though this project is meant to be lightweight and extendable, some
 features may still be missing. Since this project belongs is open source, new features will
 come as needed from the user base. For example, a rendering/streaming timeout could be useful.
@@ -55,18 +57,6 @@ Or perhaps built-in support for rendering any given templates as string instead 
 `npm install co-efficient --save`
 
 
-## Configuration
-
-* **paths**:*{String|Array}* - a list of paths where sources may be found. Each
-source template will be fetched from first to last, until a file exists. If a string
-is specified, eath path must be separated with a `path.delimiter`. *(default: `['.']`)*
-* **ext**:*{String|Array}* - a list of source extensions to be appended at the end
-a the template name. Note that the engine will also try to look for an extensionless
-file as well, as a last resort, if nothing else is found first. Each extension should
-start with the dot. If a string is specified, it must be comme delimited.
-*(default `'.cooft, .coeft.html'`)*
-
-
 ## Public API
 
 ### Engine
@@ -87,9 +77,20 @@ var html = yield Engine.render('foo/bar', { foo: 'bar' });
 
 #### Engine API
 
+* *[static]* **extSep**:*{String}* - the extension separator character used to split
+extensions when resolving a template, if specified as a string. (See [
+* *[static]* **registerModifier** *(modifier:String, callback:Function)* - register a
+template's block segment modifier. A modifier will transform the output of that block
+at render-time. See [Block Modifier Flags](#block-modifier-flags).
+* *[static]* **unregisterModifier** *(modifier:String)* - unregister a template's block
+modifier.
+* *[static]* **modifiers**:*{Object}* - returns the registered modifiers. This object
+is readonly and cannot be modified directly.
+* *[static]* **exceptions.EngineException**:*{EngineException}* - the exception type
+thrown when an exception occurs inside the engine.
 * **cache**:*{Object}* - the actual template cache. To force template re-loading,
 simply remove it from this object.
-* **config**:*{Object}* - the configuration object. See [Configuration](#configuration).
+* **config**:*{Object}* - the configuration object. See [Configuration](#engine-configuration).
 * **helpers**:*{Object}* - an object of view helpers. Each value should be a
 `GeneratorFunction` accepting a `Context` object, a `body` string and a `params`
 object, and should return the string to render. See [Helpers](#helpers) for more
@@ -101,14 +102,56 @@ while searching for the file. The function accepts a single argument, the templa
 * **render** *(name:String, data:Object)*:*{GeneratorFunction}* - render the given template
 name using `data` as context root. The function returns the rendered template as a `String`.
 * **stream** *(stream:stream.Writable, name:String, data:Object, autoClose:boolean)*:
-*{GeneratorFunction}* :
-stream the given template name using the specified stream writer, and `data` as context
-root. If `autoClose` is set to true, the stream will be closed automatically once the
-template is done processing. Otherwise, it is left opened, and it is the caller's
-responsibility to close it. The function does not return anything.
+*{GeneratorFunction}* - stream the given template name using the specified stream writer,
+and `data` as context root. If `autoClose` is set to true, the stream will be closed
+automatically once the template is done processing. Otherwise, it is left opened, and it
+ is the caller's responsibility to close it. The function does not return anything.
+
+**NOTE**: `Engine` extends `EventEmitter`, therefore inherits all events methods. It also
+allows *static* events registration through the methods : `on`, `once`, `addListener`,
+`removeListener`, `removeAllListeners`, and `listeners`. See [Engine Events](#engine-events).
 
 **NOTE**: the public API is frozen and you cannot assigned new objects to the `Engine`
 object. (i.e. `Engine.config = { foo: true };` will not do anything.)
+
+
+#### Engine Configuration
+
+Engine configuration is done only through `Engine` instances. For example, it can
+be defined with :
+
+```javascript
+var engine = new Engine({ config: configurationObject });
+```
+
+* **paths**:*{String|Array}* - a list of paths where sources may be found. Each
+source template will be fetched from first to last, until a file exists. If a string
+is specified, eath path must be separated with a `path.delimiter`. *(default: `['.']`)*
+* **ext**:*{String|Array}* - a list of source extensions to be appended at the end
+a the template name. Note that the engine will also try to look for an extensionless
+file as well, as a last resort, if nothing else is found first. Each extension should
+start with the dot. If a string is specified, it must be comme delimited.
+*(default `'.cooft, .coeft.html'`)*
+
+
+#### Engine Events
+
+* **internalEngineCreated** *(InternalEngine)* - when rendering a template, the engine will
+create an instance of an internal engine to wrap and expose some methods to the template and
+helpers. This event is called so extensions may add custom properties to the instance before
+it is frozen and send to the template renderer.
+* **templateResolved** *(String)* - when rendering a template that has not been compiled, this
+event is emitted when a tempalte file has been successfully resolved. Useful for debugging and
+logging.
+* **templateProcessed** *(Object)* - emitted when a template has been processed. The `object`
+sent contains the keys : `name` the name of the template, `stream` the stream writer used to
+render the tempalte, and `data` the data fed to the template.
+* **templateNotFound** *{Object}* - emitted when a template could not be found. This event is
+also emitted when a template is rendering a partial. Useful for debugging and logging. The
+`object` sent contains the keys : `name` the name of the template, and `context` the actual
+context received. (See [Context](#context))
+* *[static]* **engineCreated** *[Object)* - emitted when an engine instance is created. Works
+only when listening for this event on the `Engine` object class directly, not an instance.
 
 
 ### Context
@@ -197,11 +240,15 @@ a parsed template, but to analyze and validate it's structure.
 
 #### Parser API
 
-* **parseFile** *(file:String)*:*{GeneratorFunction}* - takes a file name and return it's
+* *[static]* **parseFile** *(file:String)*:*{GeneratorFunction}* - takes a file name and return it's
 tokenized segment structure as an hierarchical object.
-* **parseString** *(str:String)*:*{GeneratorFunction}* - takes a string and return it's
+* *[static]* **parseString** *(str:String)*:*{GeneratorFunction}* - takes a string and return it's
 tokenized segment structure as an hierarchical object.
-* **exceptions.ParseException** *{constructor}* - the exception being thrown when the parser
+* *[static]* **registerBlockRule** *(id:String, options:Object)* - register a new parsing block rule
+See [Custom Blocks](#custom-blocks).
+* *[static]* **unregisterBlockRule** *(id:String)* - register a new parsing block rule
+See [Custom Blocks](#custom-blocks).
+* *[static]* **exceptions.ParseException**:*{ParseException}* - the exception being thrown when the parser
 encounters an error. The instances of this object inherits from `Error`.
 
 
@@ -220,9 +267,15 @@ is to generate JavaScript, not a callable function. The [Engine](#engine) has th
 
 #### Compiler API
 
-* **compile** *(rootSegment:Object)*:*{GeneratorFunction}* - compiles the hierarchical segment
-tree into an executable JavaScript function and return the generated string. The `rootSegment`
+* *[static]* **compile** *(rootSegment:Object)*:*{GeneratorFunction}* - compiles the hierarchical
+segment tree into an executable JavaScript function and return the generated string. The `rootSegment`
 should be an object compatible with the returned value of `Parser.parseString` or `Parser.parseFile`.
+* *[static]* **registerBlockRenderer** *(id:String, callback:Function)* - register a new block renderer.
+See [Custom Blocks](#custom-blocks).
+* *[static]* **unregisterBlockRenderer** *(id:String)* - register a block renderer.
+See [Custom Blocks](#custom-blocks).
+* *[static]* **exceptions.CompilerException**:*{CompilerException}* - the exception being thrown when
+the parser encounters an error. The instances of this object inherits from `Error`.
 
 
 ## Syntax
@@ -311,7 +364,7 @@ called from the view script
 <div>{&{hello:user id="user" class="bold"}}{{name}}{&{/}}</div>
 ```
 
-Would output, for example : `<span id="user" class="bold">Hello, John!</span>`.
+Would output, for example : `<div><span id="user" class="bold">Hello, John!</span></div>`.
 
 **NOTE**: data can be injected directly into the context (`ctx`) before rendering chunks
 by modifying it's `data` attribute. For example :
@@ -341,18 +394,18 @@ specifies that the block has more content bodies to be associated with. For exam
 
 #### Helper Function Arguments
 
-* **stream** *{stream.Writable}* : the template's writable stream. This stream
+* **stream**:*{stream.Writable}* - the template's writable stream. This stream
 render the template in the same order data are written to it. Therefore, all
 non-generator async functions (node style callbacks) must be converted into a
 thunk or a generator function, and `yield` their result before returning from
 the helper function. Any data written to the stream after returning from the
 helper function may cause an exception or unpredictable rendered template.
-* **ctx** *{Context}* : a context is equivalent to the `this` in many programming
+* **ctx**:*{Context}* - a context is equivalent to the `this` in many programming
 languages. It indicate the data that can be accessed within the helper. See [Context](#context).
-* **chunk** *{Renderer}* : an object with only two properties; `length`, the number of
+* **chunk**:*{Renderer}* - an object with only two properties; `length`, the number of
 available content bodies and `render`, a `GeneratorFunction` receiving an optinal `index`
 argument, specifying which content body to render. (Ex: `yield chunk.render(0);`)
-* **params** *{Object|null}* : an optional argument passing any helper's argument into the
+* **params**:*{Object|null}* - an optional argument passing any helper's argument into the
 helper function as an object. See [Block Parameters](#block-parameters).
 
 
@@ -422,7 +475,7 @@ any rendered partial and template at render-time, but only as they are encounter
 by at render-time.
 
 
-### Iteratiors
+### Iterators
 
 Generating lists and chunks of text by processing collections of data is one of the
 essence of templates. The Efficient engine supports three kinds of data iterators.
@@ -575,18 +628,18 @@ unless you know what you're doing! A typical rule looks like this :
 }
 ```
 
-* **openingContent** *{String}* : tells in what state the parser should be when
+* **openingContent**:*{String}* - tells in what state the parser should be when
 parsing the block's segment identifier. The possible values are `inName`, `inContext`
 or `inParam`. Since all blocks follow the same syntax (see [Syntax](#syntax)), once
 a block state is `inContext`, it means that the block has no `inName` state.
-* **validContent** *{Object}* : enables content states for the given block. There
+* **validContent**:*{Object}* - enables content states for the given block. There
 should be at least one content enabled.
-* **maxSiblings** *{Numeric}* : how many content bodies, max, the block can have?
+* **maxSiblings**:*{Numeric}* - how many content bodies, max, the block can have?
 To disable this feature and prevent a template from declaring a content body for
 the block, set this value to a `false` (or any falsy value).
-* **selfClosing** *{boolean}* : whether or not the block can be self closing (i.e.
+* **selfClosing**:*{boolean}* - whether or not the block can be self closing (i.e.
 `{#{block/}}`) or not. If `closeBlock` is `false`, this value **must** be `true`.
-* **closeBlock** *{boolean}* : whether or not the block can have an external closing
+* **closeBlock**:*{boolean}* - whether or not the block can have an external closing
 block (i.e. `{#{block}}{#{/}}`) or not. If `selfClosing` is `false, this value **must**
 be `true`.
 
@@ -614,12 +667,12 @@ Where `id` is the block identifier and `renderer` a `thunk` or `GeneratorFunctio
 The renderer function's signateur should be `(compiledData, segValue, segKey, segments)`,
 and each argument is defined as :
 
-* **compiledData** *{Object}* : an object of compiled data so far. The object contains different
+* **compiledData**:*{Object}* - an object of compiled data so far. The object contains different
 sections that will be concatenated by the compiler at finishing time.
-* **segValue** *{Object}* : the current segment block being processed. Content bodies can be
+* **segValue**:*{Object}* - the current segment block being processed. Content bodies can be
 processed from the `segment.segments` array.
-* **segKey** *{Numeric}* : the segment id, where `segments[segKey] === segValue`.
-* **segments** *{numeric}* : the object containing the current `segValue` object and all it's
+* **segKey**:*{Numeric}* - the segment id, where `segments[segKey] === segValue`.
+* **segments**:*{numeric}* - the object containing the current `segValue` object and all it's
 siblings. Some segments have multiple content bodies, which can be fetched using, for example,
 `segments[segValue.nextSegment]` or `segments[segValue.headSegment]`.
 
@@ -628,14 +681,22 @@ siblings. Some segments have multiple content bodies, which can be fetched using
 #### Example
 
 ```javascript
+// register the new parser rule
 Parser.registerBlockRule('b', {
   openingContent: 'inParam',
   validContent: { 'params': true },
   maxSiblings: false,
   selfClosing: true
 });
+
+// tell the compiler to delegate rendering for this block type
 Compiler.registerBlockRenderer('b', bookRenderer);
-Engine.on('internalEngineCreated', function init(internalEngine) {
+
+// create a new engine instance
+var engine = new Engine(options);
+
+// bind the internal engine (the engine used while rendering templates)
+engine.on('internalEngineCreated', function init(internalEngine) {
   internalEngine.b = getBookJson;
 });
 
@@ -643,6 +704,8 @@ Engine.on('internalEngineCreated', function init(internalEngine) {
 Block : {b{isbn="value"/}}
 */
 function * bookRenderer(cData, sValue, sKey, segments) {
+  // note : the use of this.OBJ_ENGINE + '.b'
+
   if (typeof segValue.params['isbn'] === 'string') {
     return 'stream.write(yield(' + this.OBJ_ENGINE + '.b)(' +
       this.quote(segValue.params['isbn']) + '));';
@@ -684,6 +747,33 @@ Might render something like
 <div><span class="title">Node.js the Right Way: Practical, Server-Side JavaScript That Scales</span> <span class="author">by Jim R. Wilson</span></div>
 <div>Unknown book!</span>
 ```
+
+#### InternalEngine API
+
+Since this object is not really used, except when customizing the Efficient Engine,
+this API is given as reference only.
+
+* **helpers**:*{Object}* - a direct reference to the `engine`'s declared helpers object.
+* **modifiers**:*{Object}* - a direct reference ot the `Engine`'s (static) declared
+modifiers object.
+* **stream** *(name:String, ctx:Context, blocks:Object)* - this
+generator function will render any template given by name using the underlaying engine
+and stream, using the specified options.
+* **format** *(value:mixed)*:*{String}* - format the specified value using the registered
+`Engine`'s formatters.
+* **iterator** *(value:mixed)*:*{Iterator}* - returns an iterator object for the given
+value. The value may be a literal (numeric), an array or an object. See [Iterators](#iterators)
+for a documented behaviour of the iterator.
+* **renderer** *(Array)*:*{Renderer}* - the name is solely syntactic as it is merely an
+adapter for the given array, and is primarily used when rendering content bodies. The
+argument must be an array of genarator functions, and the returned renderer object contains
+two properties; `length` the actual length of the provided array and, `render` a generator
+function receiving an `index` as argument and yielding the renderer's provided array (a
+generator function) to `co`.
+
+**NOTE**: instances of `InternalEngine` are not extendable after they are created.
+However, to add custom properties to an instance, the `engine`'s `internalEngineCreated`
+event must be listened to, which receives the instance before it is frozen.
 
 
 ## Contribution
