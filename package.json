@@ -1,6 +1,6 @@
 {
   "name": "co-efficient",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An Efficient and lightweight asynchronous template Engine using `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
@@ -31,6 +31,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "co-fs": "^1.2.0"
+    "co-fs": "^1.2.0",
+    "should": "^3.3.0",
+    "semicov": "^0.1.1"
   }
 }
