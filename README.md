@@ -141,6 +141,9 @@ it is frozen and send to the template renderer.
 * **templateResolved** *(String)* - when rendering a template that has not been compiled, this
 event is emitted when a tempalte file has been successfully resolved. Useful for debugging and
 logging.
+* **templateProcessing** *(Object)* - emitted when a template is being processed. The `object`
+sent contains the keys : `name` the name of the template, `stream` the stream writer used to
+render the tempalte, and `data` the data fed to the template.
 * **templateProcessed** *(Object)* - emitted when a template has been processed. The `object`
 sent contains the keys : `name` the name of the template, `stream` the stream writer used to
 render the tempalte, and `data` the data fed to the template.
