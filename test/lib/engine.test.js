@@ -54,4 +54,15 @@ describe('Test engine', function () {
     //console.log(html);
   });
 
+  it('should render types correctly', function * () {
+    var text = yield engine.render('types', {
+      zero: 0,
+      text: 'Hello world!',
+      obj: { foo: 'bar' },
+      fn: function hello() { console.log('World'); }
+    });
+
+    //console.log(text);
+  });
+
 });
