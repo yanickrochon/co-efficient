@@ -673,7 +673,7 @@ Compiler.unregisterBlockRenderer(id);
 
 Where `id` is the block identifier and `renderer` a `thunk` or `GeneratorFunction`.
 
-The renderer function's signateur should be `(compiledData, segValue, segKey, segments)`,
+The renderer function's signature should be `(compiledData, segValue, segKey, segments)`,
 and each argument is defined as :
 
 * **compiledData**:*{Object}* - an object of compiled data so far. The object contains different
