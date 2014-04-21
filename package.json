@@ -32,7 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "co-fs": "^1.2.0",
-    "should": "^3.3.0",
+    "should": "^3.3.1",
     "semicov": "^0.1.1",
     "error-factory": "0.0.7"
   }
