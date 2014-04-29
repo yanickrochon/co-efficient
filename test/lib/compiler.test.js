@@ -15,6 +15,7 @@ describe('Test compiler', function () {
   it('should compile texts', function * () {
     var compiled = yield (Compiler.compile)(compiledData);
 
+    //console.log(compiled);
 
   });
 

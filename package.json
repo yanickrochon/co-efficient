@@ -1,6 +1,6 @@
 {
   "name": "co-efficient",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "An Efficient and lightweight asynchronous template Engine using `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
@@ -22,18 +22,16 @@
   "bugs": {
     "url": "https://github.com/yanickrochon/co-efficient/issues"
   },
-  "devDependencies": {
-    "semicov": "^0.1.1-2",
-    "should": "^3.1.4",
-    "mocha": "^1.18.2",
-    "co-mocha": "0.0.2",
-    "co": "^3.0.5"
-  },
-  "license": "MIT",
   "dependencies": {
     "co-fs": "^1.2.0",
-    "should": "^3.3.1",
+    "error-factory": "0.0.14"
+  },
+  "devDependencies": {
+    "co": "^3.0.5",
+    "co-mocha": "0.0.2",
+    "mocha": "^1.18.2",
     "semicov": "^0.1.1",
-    "error-factory": "0.0.7"
-  }
+    "should": "^3.3.1"
+  },
+  "license": "MIT"
 }

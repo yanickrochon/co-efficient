@@ -1,3 +1,8 @@
+{/{}}
+  This template is part of the testing suite for co-efficient.
+
+  This block should not be compiled.
+{/{/}}
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -8,11 +13,14 @@
 
   <div>\{100% coverage}</div>
 
+  {/{"Invoke partials sending the context \"foo.bar\""/}}
   {>{"partials/test":foo.bar/}}
 
   {+{list:..listObj/}}
   {+{list:..listArr/}}
   {+{list:..counter/}}
+
+  {?{"[.test.value] > 10"}}Greater than 10{?{~}}Less or equal to 10{?{/}}
 
 </body>
 </html>

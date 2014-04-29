@@ -240,7 +240,7 @@ describe('Test Parser', function () {
       '{,{block/}}',
       '{"{block/}}',
       '{ {block/}}',
-      '{/{block/}}',
+      '{*{block/}}',
       '{#{block arg=foo/}}',      // inline block cannot have parameters
       '{@{context.foo.bar/}e}',   // self closing iteration not allowed
       '{?{context.foo.bar/}e}',   // self closing conditionals not allowed
@@ -342,14 +342,14 @@ describe('Test Parser', function () {
 
   it('should escape quoted text', function (done) {
     var sources = [
-      '{&{"blo\\ck"/}}',
-      '{&{"blo\\\\ck"/}}',
-      '{&{"blo\\{ck"/}}',
-      '{&{"blo\\"ck"/}}',
-      '{&{"blo\\:ck"/}}',
-      '{&{"blo\\ ck"/}}',
-      '{&{"blo\\/ck"/}}',
-      '{&{"blo\\~ck"/}}',
+      '{>{"part\\ial"/}}',
+      '{>{"part\\\\ial"/}}',
+      '{>{"part\\{ial"/}}',
+      '{>{"part\\"ial"/}}',
+      '{>{"part\\:ial"/}}',
+      '{>{"part\\ ial"/}}',
+      '{>{"part\\/ial"/}}',
+      '{>{"part\\~ial"/}}',
       '{&{helper arg1="\\\\"/}}',
       '{&{helper arg2="\\/"/}}',
       '{&{helper arg3="\\="/}}',
@@ -461,6 +461,13 @@ describe('Test Parser', function () {
 
   it('should parse conditional block', function * () {
     yield (Parser.parseString('{?{context.foo.bar}e}{?{~}}{?{/}}'));
+    yield (Parser.parseString('{?{"[.] == true"}e}{?{~}}{?{/}}'));
+    yield (Parser.parseString('{?{"[..foo.bar] === \'bar\'":.}e}{?{~}}{?{/}}'));
+  });
+
+  it('should parse comments block', function * () {
+    yield (Parser.parseString('{/{"Literal comments with \\" quotes"/}}'));
+    yield (Parser.parseString('{/{}}Multiline\nComments\nare\nice{/{/}}'));
   });
 
   it('should parse file', function * () {
@@ -470,7 +477,7 @@ describe('Test Parser', function () {
     //console.log(JSON.stringify(parsed, null, 2));
 
     // NOTE : by now, if it doesn't explode, we can assume with a certain
-    //        degree of certainty, by now, that it has parsed successfully!
+    //        degree of certainty, that it has parsed successfully
 
   });
 

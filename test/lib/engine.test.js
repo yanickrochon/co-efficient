@@ -41,6 +41,9 @@ describe('Test engine', function () {
         bar: {
           paragraph: 'This is a paragraph content'
         }
+      },
+      test: {
+        value: 11
       }
     });
 

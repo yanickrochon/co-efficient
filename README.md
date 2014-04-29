@@ -13,13 +13,15 @@ of them had all that I was looking for, or some even rejected some of the requir
 that I had. So, instead of taking an existing project and transforming it into an
 aberration, I started this one, at first, as a personal exercise. I believe that
 `co-efficient` is a potential templating engine, and tests are pretty concluant
-about it. The project was born on March 17, 2014, but it is already working quite well!
+about it.
+
 
 ### TODO
 
-* **More testing!** : There is a 96% branch coverage, however it is not as solid as I'd like
-it to be. For example, there *may* be use cases that are not convered in the tests that
-could make the parser, or the compiler fail, or make the renderer engine behave abnormally.
+* **More testing!** : There is a 88% branch coverage, and this number can be improved by
+adding more unit testing. It is not as solid as I'd like it to be. For example, there *may*
+be use cases that are not convered in the tests that could make the parser, or the compiler
+fail, or make the renderer engine behave abnormally.
 * **Optimizations** : The compiler is trying to optimize the template as best as it can,
 and the result is quite good so far. But it *can* be improved! Also, rendering the template
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.
@@ -33,7 +35,7 @@ Or perhaps built-in support for rendering any given templates as string instead 
 ## Features
 
 * Compiled templates into callable JavaScript functions
-* COmpiled templates are cached, much like `require`'s behaviour
+* Compiled templates are cached, much like `require`'s behaviour
 * 100% Asynchronous using `co` and `--harmony-generators`
 * Templates are streamable using standard `stream.Writable` interfaces
 * Extendable through [`helpers`](#helpers), and [custom blocks](#custom-blocks).
@@ -76,7 +78,7 @@ var html = yield engine.render('foo/bar', { foo: 'bar' });
 #### Engine API
 
 * *[static]* **extSep**:*{String}* - the extension separator character used to split
-extensions when resolving a template, if specified as a string. (See [
+extensions when resolving a template, if specified as a string.
 * *[static]* **registerModifier** *(modifier:String, callback:Function)* - register a
 template's block segment modifier. A modifier will transform the output of that block
 at render-time. See [Block Modifiers](#block-modifiers).
@@ -529,18 +531,23 @@ The parent context of this parent context (i.e. `{{...}}`) returns the previous 
 
 ### Conditionals
 
-Conditional blocks are rendered using the `{?{context}}{?{~}}{?{/}}` instruction,
-where `context` is evaluated into a truthy or falsy value. This block is equivalent
-to the programmatic `if (context) ... else ... endif` statement. If `context` is
-true, then the first block segment`s content body is rendered, otherwise the second
+Conditional blocks are rendered using the `{?{"condition":context}}{?{~}}{?{/}}`
+instruction, where `"condition"` is an optional, literal conditional statement, and
+`context` is the context to use. If `"literal"` is not used, the context itself is
+evaluated into a truthy or falsy value. This block is equivalent to the programmatic
+`if (condition|context) ... else ... endif` statement. If the condition (or `context`)
+is true, then the first block segment`s content body is rendered, otherwise the second
 (if provided) is rendered.
+
+The condition may use literal values, or contexts (relative to the current context),
+enclosed in square brackets (`[]`).
 
 
 #### Example
 
 ```
-{?{authUser}}
-  <div>Welcom {{authUser.identify}} !</div>
+{?{"[authUser.identity] && [authUser.active]":authUser}}
+  <div>Welcome {{identity}} !</div>
 {?{/}}
 
 <ul>
@@ -554,11 +561,20 @@ true, then the first block segment`s content body is rendered, otherwise the sec
 </ul>
 ```
 
-**NOTE**: conditional blocks are the only ones that do not change context. This
-is so to avoid confusion within the "else" (`{?{~}}`) block, and because they
-do not semantically encapsulate a different context and because they don't
-requiert modifying the context to push additional information as the iteration
-block does.
+
+### Comments
+
+Comments may be added inside templates. They may take two forms :
+
+```
+{/{"Some literal comments, where \" must be escaped!"/}}
+
+{/{}}
+Multi-line comments.
+
+Will be ignored by the template compiler.
+{/{/}}
+```
 
 
 ### Block Parameters
