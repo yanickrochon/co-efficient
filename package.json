@@ -24,13 +24,13 @@
   },
   "dependencies": {
     "co-fs": "^1.2.0",
-    "error-factory": "0.0.14"
+    "error-factory": "0.0.15"
   },
   "devDependencies": {
     "co": "^3.0.5",
     "co-mocha": "0.0.2",
     "mocha": "^1.18.2",
-    "semicov": "^0.1.1",
+    "semicov": "^0.1.1-2",
     "should": "^3.3.1"
   },
   "license": "MIT"
