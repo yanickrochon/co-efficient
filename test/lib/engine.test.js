@@ -68,4 +68,22 @@ describe('Test engine', function () {
     //console.log(text);
   });
 
+
+  it('should render conditional with context correctly', function * () {
+    var text;
+
+    text = yield engine.render('if-context', {
+      foo: 'foo',
+      bar: 'bar'
+    });
+    text.should.equal('foo\n');
+
+    text = yield engine.render('if-context', {
+      bar: 'bar'
+    });
+    text.should.equal('bar\n');
+
+
+  });
+
 });
