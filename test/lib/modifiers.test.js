@@ -120,32 +120,32 @@ describe('Template Modifiers Test', function () {
   });
 
   it('should register new modifiers', function * () {
-    Parser.registerBlockModifier('*');
-    Engine.registerModifier('*', function mask(value) {
-      var len;
-      var maskedValue = '';
+    Parser.registerBlockModifier('x');
+    Engine.registerModifier('x', function mask(value) {
+      var a = value.split('');
+      var n = a.length;
 
-      value = String(value);
-      len = value.length;
-
-      while (len-- > 0) {
-        maskedValue += '*';
+      for(var i = n - 1; i > 0; --i) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
       }
-
-      return maskedValue;
+      return a.join('');
     });
 
     var templateName = 'test.escape';
-    var templateStr = '<div>{{user.pass}*}</div>';
+    var templateStr = '<div>{?{foo}x}{{.}}{?{/}}</div>';
 
     yield compileTemplateText(templateName, templateStr);
 
-    var text = yield engine.render(templateName, { user: { pass: 'foobar' } });
+    var text = yield engine.render(templateName, { foo: 'Hello world!' });
 
-    text.should.equal('<div>******</div>');
+    text.should.not.equal('<div></div>');
+    text.should.not.equal('<div>Hello world!</div>');
 
-    Parser.unregisterBlockModifier('*');
-    Engine.unregisterModifier('*');
+    Parser.unregisterBlockModifier('x');
+    Engine.unregisterModifier('x');
   });
 
 });

@@ -27,9 +27,9 @@ and the result is quite good so far. But it *can* be improved! Also, rendering t
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.
 * **More Events** : Add events to the parser and compiler.
 * **Features** : Even though this project is meant to be lightweight and extendable, some
-features may still be missing. Since this project belongs is open source, new features will
-come as needed from the user base. For example, a rendering/streaming timeout could be useful.
-Or perhaps built-in support for rendering any given templates as string instead of files.
+features may still be missing. Since this project is open source, new features will come
+as needed from the user base (you). For example, a rendering/streaming timeout might be useful.
+Or perhaps built-in support for rendering any given templates from strings instead of files only.
 
 
 ## Features
@@ -38,10 +38,11 @@ Or perhaps built-in support for rendering any given templates as string instead 
 * Compiled templates are cached, much like `require`'s behaviour
 * 100% Asynchronous using `co` and `--harmony-generators`
 * Templates are streamable using standard `stream.Writable` interfaces
-* Extendable through [`helpers`](#helpers), and [custom blocks](#custom-blocks).
 * Template includes through [partials](#partials)
-* Most blocks support context switching for increased template reusability
-* Shared reusable blocks declarations across
+* Output [modifiers](#block-modifiers)
+* Extendable through [`helpers`](#helpers), [custom blocks](#custom-blocks), and [modifiers](#custom-modifiers).
+* Support for block context switching for increased template reusability
+* Shared reusable blocks declarations across partials
 * Intuitive template language (see [Syntax](#syntax).)
 * Well separated clean code
 
@@ -73,6 +74,11 @@ var engine = new Engine({
 // render 'path/to/view/tempaltes/foo/bar.coeft.html'
 var html = yield engine.render('foo/bar', { foo: 'bar' });
 ```
+
+The engine constructor, at the moment, accepts two options :
+
+* **config**:*{Object}* - a configuration object. See [Configuration](#engine-configuration).
+* **helpers**:*{Object}* - helper declaration object. See [Helpers](#helpers).
 
 
 #### Engine API
@@ -552,7 +558,7 @@ enclosed in square brackets (`[]`).
 
 <ul>
   {?{tags}}
-    {@{tags}}
+    {@{.}}
       <li>{{.}}
     {@{/}}
   {?{~}}
@@ -560,6 +566,10 @@ enclosed in square brackets (`[]`).
   {?{/}}
 </ul>
 ```
+
+**Note**: in the example above, the second condition (`{?{tags}}`), validates if the context
+`tags` is truthy and the next iterator (`{@{.}}`) is simply using that context to iterate
+from, passing each element as the next context (`{{.}}`) to print inside a list element.
 
 
 ### Comments
@@ -616,11 +626,33 @@ an error message.
 
 ### Block Modifiers
 
-Modifiers are text transformer. They are applied as text is sent through the
+Modifiers are text transformers. They are applied as text is sent through the
 `stream.Writable` instance. They are applied in the order they are declared.
 
 For example : `Hello {{name}leU}!` might be rendered as `Hello D%27OH!' (lowercase,
 escape, then uppercase).
+
+**Note**: after applying all modifiers (if any specified), any value sent through the renderer
+stream which are not strings will be formatted; `null` or `undefined` values will be rendered
+as an empty string, values of type `Object` will be passed through `JSON.stringify`, and any
+other value will have their `toLocaleString()` method invoked.
+
+
+#### Built-in Modifiers
+
+Modifiers are case-sensitive. These are built-in modifiers and they cannot be
+overridden by custom ones. Define your own modifiers!
+
+* **Encode URI** *{`e`} - encodes special characters, except: , / ? : @ & = + $ #
+* **Encode URI Component** *(`E`) - encodes special characters, including the following
+characters: , / ? : @ & = + $ #
+* **JSON stringify** *(`j`) - beautify a JSON object with indentation (4 spaces). **NOTE**:
+use this modifier wisely!
+* **Upper case** *(`U`) - change the value to upper case. Internally, this modifier uses
+the `toLocaleUpperCase()` function.
+* **Lower case** *(`l`) - change the value to lower case. Internally, this modifier uses
+the `toLocaleLowerCase()` function.
+* **Mask output** *(`*`) - replace every character with a star (`*`)
 
 
 ### Custom Blocks
@@ -836,26 +868,26 @@ the value if it's already a string, for example.
 
 #### Example
 
-Registering a mask modifier that will transform any chunk of text into `*` chars.
+Registering a modifier that will scramble any chunk of text.
 
 ```javascript
-Parser.registerBlockModifier('*');
-Engine.registerModifier('*', function mask(value) {
-  var len;
-  var maskedValue = '';
+Parser.registerBlockModifier('x');
+Engine.registerModifier('x', function scamble(value) {
+  var a = value.split('');
+  var n = a.length;
 
-  value = String(value);
-  len = value.length;
-
-  while (len-- > 0) {
-    maskedValue += '*';
+  for(var i = n - 1; i > 0; --i) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
   }
-
-  return maskedValue;
+  return a.join('');
 });
 ```
 
-Now, a template like : `<div>{{user.pass}*}</div>` might render like `<div>*********</div>`.
+Now, a template like : `<div>{?{foo}x}{{.}}{?{/}}</div>`, with some data like
+`{foo:'Hello world!'}` might render into `<div>Hleowr !odll</div>`.
 
 
 ## Contribution
