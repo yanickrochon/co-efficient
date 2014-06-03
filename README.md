@@ -285,6 +285,9 @@ See [Custom Blocks](#custom-blocks).
 See [Custom Blocks](#custom-blocks).
 * *[static]* **exceptions.CompilerException**:*{CompilerException}* - the exception being thrown when
 the parser encounters an error. The instances of this object inherits from `Error`.
+* *[static]* **IGNORE_MISSING_INLINE_BLOCKS** *{Boolean}* - set to false to output errors when an inline
+block is missing. By default ignore missing inline blocks when rendering templates. *(Default `true`)*
+
 
 
 ## Syntax
