@@ -120,8 +120,8 @@ describe('Template Modifiers Test', function () {
   });
 
   it('should register new modifiers', function * () {
-    Parser.registerBlockModifier('x');
-    Engine.registerModifier('x', function mask(value) {
+    Parser.registerBlockModifier('S');
+    Engine.registerModifier('S', function mask(value) {
       var a = value.split('');
       var n = a.length;
 
@@ -135,7 +135,7 @@ describe('Template Modifiers Test', function () {
     });
 
     var templateName = 'test.escape';
-    var templateStr = '<div>{?{foo}x}{{.}}{?{/}}</div>';
+    var templateStr = '<div>{?{foo}S}{{.}}{?{/}}</div>';
 
     yield compileTemplateText(templateName, templateStr);
 
@@ -144,8 +144,8 @@ describe('Template Modifiers Test', function () {
     text.should.not.equal('<div></div>');
     text.should.not.equal('<div>Hello world!</div>');
 
-    Parser.unregisterBlockModifier('x');
-    Engine.unregisterModifier('x');
+    Parser.unregisterBlockModifier('S');
+    Engine.unregisterModifier('S');
   });
 
 });

@@ -646,16 +646,23 @@ other value will have their `toLocaleString()` method invoked.
 Modifiers are case-sensitive. These are built-in modifiers and they cannot be
 overridden by custom ones. Define your own modifiers!
 
-* **Encode URI** *{`e`} - encodes special characters, except: , / ? : @ & = + $ #
-* **Encode URI Component** *(`E`) - encodes special characters, including the following
+* **Encode URI Component** *{`c`}* - encode special characters, including the following
 characters: , / ? : @ & = + $ #
+* **Decode URI Component** *(`C`)* - decode special characters, including the following
+characters: , / ? : @ & = + $ #
+* **Decode URI** *{`e`} - encodes special characters, except: , / ? : @ & = + $ #
+* **Decode URI** *{`E`} - encodes special characters, except: , / ? : @ & = + $ #
+* **Encode HTML entities** *(`h`)* - encode all HTML entities. Ex: `"` becomes `&quot;`
+* **Decode HTML entities** *(`H`)* - decode all HTML entities. Ex: `&quot;` becomes `"`
 * **JSON stringify** *(`j`) - beautify a JSON object with indentation (4 spaces). **NOTE**:
 use this modifier wisely!
 * **Upper case** *(`U`) - change the value to upper case. Internally, this modifier uses
 the `toLocaleUpperCase()` function.
 * **Lower case** *(`l`) - change the value to lower case. Internally, this modifier uses
 the `toLocaleLowerCase()` function.
-* **Mask output** *(`*`) - replace every character with a star (`*`)
+* **Encode XML entities** *(`x`)* - encode all XML entities
+* **Decode XML entities** *(`X`)* - decode all XML entities
+* **Mask output** *(`*`)* - replace every character with a star (`*`)
 
 
 ### Custom Blocks
