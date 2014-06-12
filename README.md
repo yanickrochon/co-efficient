@@ -1,5 +1,7 @@
 # co-efficient
 
+[![Build Status](https://travis-ci.org/yanickrochon/co-efficient.png)](https://travis-ci.org/yanickrochon/co-efficient)
+
 [![NPM](https://nodei.co/npm/co-efficient.png?compact=true)](https://nodei.co/npm/co-efficient/)
 
 An Efficient and lightweight asynchronous template Engine using `co`.

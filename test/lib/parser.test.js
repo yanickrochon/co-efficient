@@ -13,6 +13,54 @@ describe('Test Parser', function () {
     return values;
   }
 
+
+  function testParseAllAsync(success, failures, done) {
+    var testComplete = 0;
+    var templateCount = 0;
+
+    function checkTestComplete() {
+      testComplete++;
+      if (testComplete >= templateCount) {
+        done();
+      }
+    }
+
+    function runTests(templates, shouldThrow) {
+      for (var i = 0; i < templates.length; ++i) {
+        (function (template) {
+          co(function * () {
+            return yield (Parser.parseString(template));
+          })(function (err, parsed) {
+            if (shouldThrow) {
+              if (!err) console.log("FAIL", template, parsed);
+              err.should.be.an.Error;
+            } else {
+              if (err) console.log("FAIL", template, JSON.stringify(err, null, 2));
+              assert.equal(err, null);
+            }
+            checkTestComplete();
+          });
+        })(templates[i]);
+      }
+    }
+
+    if (success && success.length) {
+      templateCount += success.length;
+      runTests(success, false);
+    }
+
+    if (failures && failures.length) {
+      templateCount += failures.length;
+      runTests(failures, true);
+    }
+
+    if (!templateCount) {
+      done();
+    }
+
+  }
+
+
   it('should parse text only', function * () {
     var source = 'Hello world!';
     var parsed = yield (Parser.parseString(source));
@@ -173,55 +221,21 @@ describe('Test Parser', function () {
   });
 
   it('should fail with too many closing blocks', function (done) {
-    var sources = [
+    testParseAllAsync(null, [
       '{#{/}}',
       '{#{block/}}{#{/}}',
       '{#{block}}{#{/}}{#{/}}'
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      co(function * () {
-        yield (Parser.parseString(sources[i]));
-      })(function (err) {
-        err.should.be.an.Error;
-        checkTestComplete();
-      });
-    }
+    ], done);
 
     this.timeout(500);
   });
 
   it('should fail because of missing closing block', function (done) {
-    var sources = [
+    testParseAllAsync(null, [
       '{#{block}}',
       '{#{block}}{+{block}}',
       '{#{block}} {{name}} {@{otherblock}}'
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      co(function * () {
-        yield (Parser.parseString(sources[i]));
-      })(function (err) {
-        err.should.be.an.Error;
-        checkTestComplete();
-      });
-    }
+    ], done);
 
     this.timeout(500);
   });
@@ -232,7 +246,7 @@ describe('Test Parser', function () {
   });
 
   it('should fail parsing invalid blocks', function (done) {
-    var sources = [
+    testParseAllAsync(null, [
       '{a{block/}}',
       '{.{block/}}',
       '{"{block/}}',
@@ -280,33 +294,13 @@ describe('Test Parser', function () {
       '{#{block}}{@{/}}',
       '{#{block}}{#{~}}{#{/}}',
       '{?{test}}{?{~}}{?{~}}{?{/}}',
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      (function (source) {
-        co(function * () {
-          return yield (Parser.parseString(source));
-        })(function (err, parsed) {
-          if (!err) console.log("FAIL", source, parsed);
-          err.should.be.an.Error;
-          checkTestComplete();
-        });
-      })(sources[i]);
-    }
+    ], done);
 
     this.timeout(500);
   });
 
   it('should fail with invalid escaping', function (done) {
-    var sources = [
+    testParseAllAsync(null, [
       '{\\{block/}}',
       '{#\\{block/}}',
       '{#{b\\lock/}}',
@@ -316,32 +310,13 @@ describe('Test Parser', function () {
       '{#{block arg\\=foo/}}',
       '{#{block:foo arg\\=foo/}}',
       '{#{block:foo arg="foo\\"/}}'
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      (function (source) {
-        co(function * () {
-          return yield (Parser.parseString(source));
-        })(function (err) {
-          err.should.be.an.Error;
-          checkTestComplete();
-        });
-      })(sources[i]);
-    }
+    ], done);
 
     this.timeout(500);
   });
 
   it('should escape quoted text', function (done) {
-    var sources = [
+    testParseAllAsync([
       '{>{"part\\ial"/}}',
       '{>{"part\\\\ial"/}}',
       '{>{"part\\{ial"/}}',
@@ -358,80 +333,26 @@ describe('Test Parser', function () {
       '{&{helper arg4="/"/}}',
       '{&{helper arg5="="/}}',
       '{&{helper arg6="="   arg7=foo   arg8=""/}}'
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      (function (source) {
-        co(function * () {
-          yield (Parser.parseString(source));
-        })(function (err) {
-          if (err) console.log("FAIL", source, err);
-          assert.equal(err, null);
-          checkTestComplete();
-        });
-      })(sources[i]);
-    }
+    ], null, done);
 
     this.timeout(500);
   });
 
   it('should parse flags', function (done) {
-    var sources = [
+    testParseAllAsync([
       '{#{block/}e}',
       '{#{block/}x}',
       '{#{block/}eU}',
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      co(function * () {
-        yield (Parser.parseString(sources[i]));
-      })(function (err) {
-        assert.equal(err, null);
-        checkTestComplete();
-      });
-    }
+    ], null, done);
 
     this.timeout(500);
   });
 
   it('should fail with invalid flags', function (done) {
-    var sources = [
+    testParseAllAsync(null, [
       '{#{block/}T}',
       '{#{block/}eO}',
-    ];
-    var testComplete = 0;
-
-    function checkTestComplete() {
-      testComplete++;
-      if (testComplete >= sources.length) {
-        done();
-      }
-    }
-
-    for (var i = 0; i < sources.length; ++i) {
-      co(function * () {
-        yield (Parser.parseString(sources[i]));
-      })(function (err) {
-        err.should.be.an.Error;
-        checkTestComplete();
-      });
-    }
+    ], done);
 
     this.timeout(500);
   });
@@ -478,6 +399,139 @@ describe('Test Parser', function () {
 
     // NOTE : by now, if it doesn't explode, we can assume with a certain
     //        degree of certainty, that it has parsed successfully
+
+  });
+
+  describe('custom blocks', function () {
+
+    it('should (un)register self closing, no close block', function (done) {
+
+      Parser.registerBlockRule('t', { 
+        openingContent: 'inName',
+        validContent: { 'name': true },
+        maxSiblings: false,
+        selfClosing: true,
+        closeBlock: false
+      });
+
+      testParseAllAsync([
+        '{t{foo /}}',
+        '{t{_ /}}'
+      ], [
+        '{t{foo}}{t{/}}',
+        '{t{}}',
+        '{t{/}}',
+        '{t{}}{t{/}}',
+        '{t{foo}}{t{~}}{t{/}}'
+      ], function () {
+        Parser.unregisterBlockRule('t');
+        done();
+      });
+
+    });
+
+    it('should (un)register with close block, non self closing', function (done) {
+
+      Parser.registerBlockRule('t', { 
+        openingContent: 'inName',
+        validContent: { 'name': true },
+        maxSiblings: false,
+        selfClosing: false,
+        closeBlock: true
+      });
+
+      testParseAllAsync([
+        '{t{foo}}{t{/}}',
+        '{t{_   }}{t{/}}'
+      ], [
+        '{t{foo/}}',
+        '{t{}}',
+        '{t{foo     /}}',
+        '{t{foo}}{t{~}}{t{/}}'
+      ], function () {
+        Parser.unregisterBlockRule('t');
+        done();
+      });
+
+    });
+
+    it('should (un)register with close block, max 2 siblings', function (done) {
+
+      Parser.registerBlockRule('t', { 
+        openingContent: 'inName',
+        validContent: { 'name': true },
+        maxSiblings: 2,
+        selfClosing: true,
+        closeBlock: true
+      });
+
+      testParseAllAsync([
+        '{t{foo /}}',
+        '{t{foo}}{t{/}}',
+        '{t{_   }}{t{/}}',
+        '{t{foo}}{t{~}}{t{/}}'
+      ], [
+        '{t{foo}}{t{~}}{t{~}}{t{/}}',
+        '{t{foo}}{t{~}}{t{~}}{t{~}}{t{/}}'
+      ], function () {
+        Parser.unregisterBlockRule('t');
+        done();
+      });
+
+    });
+
+
+
+    it('should fail with invalid block identifier', function () {
+
+      [
+        undefined, null, true, false, {}, [], function () {}, -1, 0, 1, /./,
+        '{', '(', '\\'
+      ].forEach(function (block) {
+
+        +function () {
+          Parser.registerBlockRule(block, {});
+        }.should.throw();
+
+        +function () {
+          Parser.unregisterBlockRule(block, {});
+        }.should.throw();
+
+      });
+
+    });
+
+  });
+
+  describe('custom modifiers', function () {
+
+    it('should (un)register custom modifier', function () {
+
+      [
+        't', 'T', 't', 'T'   // repeat to make sure we clean up properly
+
+      ].forEach(function (modifier) {
+        Parser.registerBlockModifier(modifier);
+        Parser.unregisterBlockModifier(modifier);
+      });
+      
+    });
+
+    it('should fail', function () {
+
+      [
+        undefined, null, true, false, {}, [], function () {}, -1, 0, 1, /./,
+        '{', '}'
+      ].forEach(function (modifier) {
+        +function () {
+          Parser.registerBlockModifier(modifier);
+        }.should.throw();        
+        +function () {
+          Parser.unregisterBlockModifier(modifier);
+        }.should.throw();        
+      });
+
+    });
 
   });
 
