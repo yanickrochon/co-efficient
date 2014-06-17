@@ -20,7 +20,7 @@ about it.
 
 ### TODO
 
-* **More testing!** : There is a 88% branch coverage, and this number can be improved by
+* **More testing!** : There is a 89% branch coverage, and this number can be improved by
 adding more unit testing. It is not as solid as I'd like it to be. For example, there *may*
 be use cases that are not convered in the tests that could make the parser, or the compiler
 fail, or make the renderer engine behave abnormally.
@@ -94,8 +94,6 @@ at render-time. See [Block Modifiers](#block-modifiers).
 modifier.
 * *[static]* **modifiers**:*{Object}* - returns the registered modifiers. This object
 is readonly and cannot be modified directly.
-* *[static]* **exceptions.EngineException**:*{EngineException}* - the exception type
-thrown when an exception occurs inside the engine.
 * **cache**:*{Object}* - the actual template cache. To force template re-loading,
 simply remove it from this object.
 * **config**:*{Object}* - the configuration object. See [Configuration](#engine-configuration).
@@ -139,7 +137,7 @@ is specified, eath path must be separated with a `path.delimiter`. *(default: `[
 a the template name. Note that the engine will also try to look for an extensionless
 file as well, as a last resort, if nothing else is found first. Each extension should
 start with the dot. If a string is specified, it must be comme delimited.
-*(default `'.cooft, .coeft.html'`)*
+*(default `'.coeft, .coeft.html'`)*
 
 
 #### Engine Events
@@ -259,8 +257,6 @@ tokenized segment structure as an hierarchical object.
 See [Custom Blocks](#custom-blocks).
 * *[static]* **unregisterBlockRule** *(id:String)* - register a new parsing block rule
 See [Custom Blocks](#custom-blocks).
-* *[static]* **exceptions.ParseException**:*{ParseException}* - the exception being thrown when the parser
-encounters an error. The instances of this object inherits from `Error`.
 
 
 ### Compiler
@@ -285,11 +281,56 @@ should be an object compatible with the returned value of `Parser.parseString` o
 See [Custom Blocks](#custom-blocks).
 * *[static]* **unregisterBlockRenderer** *(id:String)* - register a block renderer.
 See [Custom Blocks](#custom-blocks).
-* *[static]* **exceptions.CompilerException**:*{CompilerException}* - the exception being thrown when
-the parser encounters an error. The instances of this object inherits from `Error`.
 * *[static]* **IGNORE_MISSING_INLINE_BLOCKS** *{Boolean}* - set to false to output errors when an inline
 block is missing. By default ignore missing inline blocks when rendering templates. *(Default `true`)*
 
+
+### Exceptions
+
+Custom exceptions are provided by the [`error-factory`](https://www.npmjs.org/package/error-factory) module.
+By default, all exceptions expose the same properties as the default JavaScript `Error` instances. In fact,
+all exceptions are instance of `Error`.
+
+
+#### EngineException
+
+Exception thrown by the `Engine` object and object instances.
+
+```javascript
+var EngineException = require('co-efficient').exceptions.EngineException;
+```
+
+#### ParseException
+
+Exception thrown by the `Parser`. When such error is thrown, an extra property is also made available :
+
+```javascript
+var ParseException = require('co-efficient').exceptions.ParseException;
+```
+
+* **messageData**:*{Object}* - essentially, this is the state of the parser. This value is for internal
+use only and is provided for debugging purposes; it is left undocumented intentionally.
+
+
+#### CompilerException
+
+Exception thrown by the `Compiler`. When such error is thrown, an extra property is also made available :
+
+```javascript
+var CompilerException = require('co-efficient').exceptions.CompilerException;
+```
+
+* **segment**:*{Object}* - the current template segment being compiled. This value is for internal use
+only and is provided for debugging purposes; it is left undocumented intentionally.
+
+
+#### RenderException
+
+Exception thrown by the `Engine`, when rendering a template.
+
+```javascript
+var RenderException = require('co-efficient').exceptions.RenderException;
+```
 
 
 ## Syntax
@@ -348,6 +389,9 @@ yield chunk.render(0);
 
 // render second content body...
 yield chunk.render(1);
+
+// get how many content bodies exist for this block.
+chunk.length;
 ```
 
 **NOTE**: if a chunk body does not exist, an empty string is rendered.
@@ -405,6 +449,8 @@ specifies that the block has more content bodies to be associated with. For exam
     yield chunk.render(1);  // renders : "Content 2"
     yield chunk.render(2);  // renders : "Content 3"
     yield chunk.render(3);  // renders : "" (no content body)
+
+    // NOTE : chunk.length == 3 in this example
   }
 }
 ```
