@@ -711,6 +711,9 @@ the `toLocaleLowerCase()` function.
 * **Encode XML entities** *(`x`)* - encode all XML entities
 * **Decode XML entities** *(`X`)* - decode all XML entities
 * **Mask output** _(`*`)_ - replace every character with a star (`*`)
+* **Iterator Count modifier** *(`@`)* - returns the size of the context if it was iterated. **NOTE**: 
+`{{foo.length}}` will rather return the property `length` of every array elements instead of
+the length of the array, thus this modifier. (ex: `{{foo}@}`) See [iterators](#iterators).
 
 
 ### Custom Blocks
