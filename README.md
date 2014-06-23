@@ -807,12 +807,15 @@ Parser.registerBlockRule('b', {
 Compiler.registerBlockRenderer('b', bookRenderer);
 
 // create a new engine instance
-var engine = new Engine(options);
-
-// bind the internal engine (the engine used while rendering templates)
-engine.on('internalEngineCreated', function init(internalEngine) {
-  internalEngine.b = getBookJson;
-});
+//    var engine = new Engine(options);
+//
+// or apply on all engine intances
+Engine.on('engineCreated', function (engine') {
+  // bind the internal engine (the engine used while rendering templates)
+  engine.on('internalEngineCreated', function init(internalEngine) {
+    internalEngine.b = getBookJson;
+  });
+})
 
 /**
 Block : {b{isbn="value"/}}
