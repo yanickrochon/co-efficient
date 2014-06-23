@@ -20,10 +20,6 @@ about it.
 
 ### TODO
 
-* **More testing!** : There is a 89% branch coverage, and this number can be improved by
-adding more unit testing. It is not as solid as I'd like it to be. For example, there *may*
-be use cases that are not convered in the tests that could make the parser, or the compiler
-fail, or make the renderer engine behave abnormally.
 * **Optimizations** : The compiler is trying to optimize the template as best as it can,
 and the result is quite good so far. But it *can* be improved! Also, rendering the template
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.

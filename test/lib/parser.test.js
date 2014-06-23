@@ -230,11 +230,21 @@ describe('Test Parser', function () {
     this.timeout(500);
   });
 
-  it('should fail because of missing closing block', function (done) {
+  it('should fail with invalid next block segment', function (done) {
+    testParseAllAsync(null, [
+      '{#{block}}{?{~}}{#{/}}',
+      '{#{block}}{#{"foo"~}}{#{/}}'
+    ], done);
+
+    this.timeout(500);
+  });
+
+  it('should fail because of missing, or invalid closing block', function (done) {
     testParseAllAsync(null, [
       '{#{block}}',
       '{#{block}}{+{block}}',
-      '{#{block}} {{name}} {@{otherblock}}'
+      '{#{block}} {{name}} {@{otherblock}}',
+      '{#{block}}{@{/}}'
     ], done);
 
     this.timeout(500);
@@ -294,6 +304,10 @@ describe('Test Parser', function () {
       '{#{block}}{@{/}}',
       '{#{block}}{#{~}}{#{/}}',
       '{?{test}}{?{~}}{?{~}}{?{/}}',
+      '{?{"',
+      '{/{foo/}}',
+      '{¼{/}}',
+      '{}'
     ], done);
 
     this.timeout(500);
