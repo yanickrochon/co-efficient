@@ -7,6 +7,17 @@
 An Efficient and lightweight asynchronous template Engine using `co`.
 
 
+---
+
+## Upgrade notice
+
+When upgrading from `<= 0.2.9`, any custom block being registered with an `openingContent`
+of `inParam` should be refactored to `inParams`!
+(See [Custom Blocks parser rules](#custom-blocks-step-1--parser-rules).)
+
+---
+
+
 ## Preamble
 
 In my search for a suitable templating engine, I came across many great projects.
@@ -151,12 +162,18 @@ render the tempalte, and `data` the data fed to the template.
 * **templateProcessed** *(Object)* - emitted when a template has been processed. The `object`
 sent contains the keys : `name` the name of the template, `stream` the stream writer used to
 render the tempalte, and `data` the data fed to the template.
-* **templateNotFound** *{Object}* - emitted when a template could not be found. This event is
+* **templateNotFound** *(Object)* - emitted when a template could not be found. This event is
 also emitted when a template is rendering a partial. Useful for debugging and logging. The
 `object` sent contains the keys : `name` the name of the template, and `context` the actual
 context received. (See [Context](#context))
-* *[static]* **engineCreated** *[Object)* - emitted when an engine instance is created. Works
+* *[static]* **engineCreated** *(Object)* - emitted when an engine instance is created. Works
 only when listening for this event on the `Engine` object class directly, not an instance.
+* *[static]* **modifierRegistered** *(String)* - emitted when a given modifier is registered.
+The event function receives the `modifier` id being registered. The modifier callback can be
+retrieved with `Engine.modifiers[modifier]`.
+* *[static]* **modifierUnregistered** *(String, Function)* - emitted when a given modifier is
+unregistered. The event function receives two arguments; the `modifier` id and the modifier
+`callback` function that was removed (unregistered).
 
 
 ### Context
@@ -690,12 +707,12 @@ other value will have their `toLocaleString()` method invoked.
 Modifiers are case-sensitive. These are built-in modifiers and they cannot be
 overridden by custom ones. Define your own modifiers!
 
-* **Encode URI Component** *{`c`}* - encode special characters, including the following
+* **Encode URI Component** *(`c`)* - encode special characters, including the following
 characters: , / ? : @ & = + $ #
 * **Decode URI Component** *(`C`)* - decode special characters, including the following
 characters: , / ? : @ & = + $ #
-* **Decode URI** *{`e`}* - encodes special characters, except: , / ? : @ & = + $ #
-* **Decode URI** *{`E`}* - encodes special characters, except: , / ? : @ & = + $ #
+* **Decode URI** *(`e`)* - encodes special characters, except: , / ? : @ & = + $ #
+* **Decode URI** *(`E`)* - encodes special characters, except: , / ? : @ & = + $ #
 * **Encode HTML entities** *(`h`)* - encode all HTML entities. Ex: `"` becomes `&quot;`
 * **Decode HTML entities** *(`H`)* - decode all HTML entities. Ex: `&quot;` becomes `"`
 * **JSON stringify** *(`j`)* - beautify a JSON object with indentation (4 spaces). **NOTE**:
@@ -735,25 +752,26 @@ unless you know what you're doing! A typical rule looks like this :
 {
   openingContent: 'inName',
   validContent: { 'name': true, 'context': true, 'params': true },
-  maxSiblings: Number.MAX_VALUE,
+  maxSiblings: Infinity,
   selfClosing: true,
   closeBlock: true
 }
 ```
 
 * **openingContent**:*{String}* - tells in what state the parser should be when
-parsing the block's segment identifier. The possible values are `inName`, `inContext`
-or `inParam`. Since all blocks follow the same syntax (see [Syntax](#syntax)), once
-a block state is `inContext`, it means that the block has no `inName` state.
+parsing the block's segment identifier. The possible values are : `inLiteral`, `inName`,
+`inContext` or `inParams`. Since all blocks follow the same syntax (see [Syntax](#syntax)),
+once a block state is `inLiteral`, it means that the block has no `inName` state.
 * **validContent**:*{Object}* - enables content states for the given block. There
-should be at least one content enabled.
+should be at least one content enabled. Available values are : `literal`, `name`,
+`context`, and `params`.
 * **maxSiblings**:*{Numeric}* - how many content bodies, max, the block can have?
 To disable this feature and prevent a template from declaring a content body for
 the block, set this value to a `false` (or any falsy value).
 * **selfClosing**:*{boolean}* - whether or not the block can be self closing (i.e.
 `{#{block/}}`) or not. If `closeBlock` is `false`, this value **must** be `true`.
 * **closeBlock**:*{boolean}* - whether or not the block can have an external closing
-block (i.e. `{#{block}}{#{/}}`) or not. If `selfClosing` is `false, this value **must**
+block (i.e. `{#{block}}{#{/}}`) or not. If `selfClosing` is `false`, this value **must**
 be `true`.
 
 ```javascript
@@ -763,6 +781,14 @@ Parser.unregisterBlockRule(id);
 
 Where `id` is the block identifier and `options` an object as described above. The
 value for the block identifier should match this pattern : `[a-zA-Z0-9_\-*^$%<"µ]`.
+
+**Note** : the order of `validContent` is important! If the defined `validContent`
+is not ordered correctly, unpredictable parsing errors may occur. For example,
+defining : `{ validContent: { 'context': true, 'name': true, 'literal': false } }`
+may result in unpredictable errors, even if `literal` is disabled; `name` *must*
+be declared before `context`, even if `name` is `false`.
+
+**Note** : `name` and `literal` *should not* both be `true`.
 
 
 #### Custom Blocks, Step 2 : Compiler Renderers
@@ -786,7 +812,7 @@ sections that will be concatenated by the compiler at finishing time.
 * **segValue**:*{Object}* - the current segment block being processed. Content bodies can be
 processed from the `segment.segments` array.
 * **segKey**:*{Numeric}* - the segment id, where `segments[segKey] === segValue`.
-* **segments**:*{numeric}* - the object containing the current `segValue` object and all it's
+* **segments**:*{Object}* - the object containing the current `segValue` object and all it's
 siblings. Some segments have multiple content bodies, which can be fetched using, for example,
 `segments[segValue.nextSegment]` or `segments[segValue.headSegment]`.
 
@@ -824,13 +850,15 @@ function * bookRenderer(cData, sValue, sKey, segments) {
   // note : the use of this.OBJ_ENGINE + '.b'
 
   if (typeof segValue.params['isbn'] === 'string') {
-    return 'stream.write(yield(' + this.OBJ_ENGINE + '.b)(' +
+    return this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
       this.quote(segValue.params['isbn']) + '));';
   } else if (segValue.params['isbn'] && segValue.params['isbn'].context) {
-    return 'stream.write(yield(' + this.OBJ_ENGINE + '.b)(' +
-      this.OBJ_CONTEXT + '.getContext(' + quote(segValue.params['isbn'].context) + ').data));';
+    return this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' + 
+      // segValue.params['isbn'].context should still be a string, but a context
+      // path. this.context(ctxPath) should return the proper JS string value
+      this.context(segValue.params['isbn'].context) + '.data));';
   } else {
-    return 'stream.write("No ISBN# in template");';
+    return this.OBJ_STREAM + '.write("No ISBN# in template");';
   }
 }
 
@@ -867,8 +895,7 @@ Might render something like
 
 #### InternalEngine API
 
-Since this object is not really used, except when customizing the Efficient Engine,
-this API is given as reference only.
+Since, and as the name implies, this object is internal and not really used otherwise, except when customizing the `co-efficient` Engine, for example, this API is given as reference only.
 
 * **helpers**:*{Object}* - a direct reference to the `engine`'s declared helpers object.
 * **stream** *(name:String, ctx:Context, blocks:Object)* - this
@@ -882,7 +909,7 @@ adapter for the given array, and is primarily used when rendering content bodies
 argument must be an array of genarator functions, and the returned renderer object contains
 two properties; `length` the actual length of the provided array and, `render` a generator
 function receiving an `index` as argument and yielding the renderer's provided array (a
-generator function) to `co`.
+generator function) to `co`. (See [helpers](#helpers)' `chunk` function argument.)
 
 **NOTE**: instances of `InternalEngine` are not extendable after they are created.
 However, to add custom properties to an instance, the `engine`'s `internalEngineCreated`
