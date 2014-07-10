@@ -76,7 +76,7 @@ var Engine = require('co-efficient').Engine;
 
 var engine = new Engine({
   config: {
-    paths: [ 'path/to/view/tempaltes' ]
+    paths: [ 'path/to/view/templates' ]
   }
 });
 
@@ -118,7 +118,7 @@ name using `data` as context root. The function returns the rendered template as
 *{GeneratorFunction}* - stream the given template name using the specified stream writer,
 and `data` as context root. If `autoClose` is set to true, the stream will be closed
 automatically once the template is done processing. Otherwise, it is left opened, and it
- is the caller's responsibility to close it. The function does not return anything.
+is the caller's responsibility to close it. The function does not return anything.
 
 **NOTE**: `Engine` extends `EventEmitter`, therefore inherits all events methods. It also
 allows *static* events registration through the methods : `on`, `once`, `addListener`,
@@ -376,7 +376,7 @@ block segments, but will simply output any given context, as string, using the
 {{foo}}    -> output 'foo' from the current context
 {{..}}     -> output the parent context
 {{.foo}}   -> output the context 'foo' from the parent context
-{{foo}U}   -> output 'foo', modified using the uppercase (`U`) modifier
+{{foo}U}   -> output the context 'foo' modified using the uppercase (`U`) [modifier](#built-in-modifiers)
 ```
 
 Context output may be used anywhere within text segments.
@@ -823,7 +823,7 @@ siblings. Some segments have multiple content bodies, which can be fetched using
 ```javascript
 // register the new parser rule
 Parser.registerBlockRule('b', {
-  openingContent: 'inParam',
+  openingContent: 'inParams',
   validContent: { 'params': true },
   maxSiblings: false,
   selfClosing: true
@@ -931,7 +931,7 @@ and render them at a later time.
 
 Simply call `Parser.registerBlockModifier(char);` or `Parser.unregisterBlockModifier(char);`
 with the modifier desired value. A modifier must be a single character and must match
-the following pattern : `[a-zA-Z0-9_\-*^$&!?#%<>"µ]`.
+the following pattern : ``[a-zA-Z0-9_\-*^`´$&!?#%<>"µ@]``.
 
 
 #### Custom Modifiers, Step 2 : Engine Registration

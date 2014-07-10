@@ -1,10 +1,8 @@
 {#{list:.}}
   {?{.}}
     <ul>
-      {@{.}}
-      <li>{?{.index}}{{.index}}{?{.key}} (Key={{.key}}){?{/}}{?{.}} - {{.}}{?{/}}{?{~}}{{.}}{?{/}}</li>
-      {@{/}}
-    </ul>
+    {@{.}}  <li>index={{.index}}, key={{.key}}, value={{.value}}, context={{.}}</li>
+    {@{/}}</ul>
   {?{~}}
     Empty list
   {?{/}}
