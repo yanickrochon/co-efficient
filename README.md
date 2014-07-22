@@ -296,6 +296,9 @@ See [Custom Blocks](#custom-blocks).
 See [Custom Blocks](#custom-blocks).
 * *[static]* **IGNORE_MISSING_INLINE_BLOCKS** *{Boolean}* - set to false to output errors when an inline
 block is missing. By default ignore missing inline blocks when rendering templates. *(Default `true`)*
+* *[static]* **TEMPLATE_MIN_LINE_WIDTH** *{Number|false}* - set the minimum length of a line when
+compiling a template. Set to `false` to put everything on a single line. Use this for debugging compiled
+templates. (Default: `false`)
 
 
 ### Exceptions
@@ -483,6 +486,9 @@ available content bodies and `render`, a `GeneratorFunction` receiving an optina
 argument, specifying which content body to render. (Ex: `yield chunk.render(0);`)
 * **params**:*{Object|null}* - an optional argument passing any helper's argument into the
 helper function as an object. See [Block Parameters](#block-parameters).
+
+**Note**: `chunk` *may* be `null` if the template's block helper does not contain
+any body segment!
 
 
 ### Inline Blocks
@@ -818,6 +824,57 @@ siblings. Some segments have multiple content bodies, which can be fetched using
 
 **NOTE**: more details on these arguments will be documented soon.
 
+The renderer function's context exposes utility values and methods to do the heavy internal
+lifting. These properties are :
+
+* **OBJ_STREAM**:*{String}* - the stream internal reference as a string.
+* **OBJ_CONTEXT**:*{String}* - the current template object context's reference as a string.
+* **OBJ_ENGINE**:*{String}* - the internal engine's API instance reference as string.
+* **OBJ_BLOCKS**:*{String}* - the internal reference to the registered block's dictionary.
+Each key is a unique name to a yieldable function value representing a named block.
+* **NEWLINE**:*{String}* - a platform dependant new line character. Used when calling `stringify`.
+See also [Compiler API](#compiler-api).
+* **context** *(String)*:*{String}* - generate a valid current context string for a given context path.
+* **quote** *(String)*:*{String}* - make sure the given argument is properly escaped and quoted.
+* **stringify** *(Object[, Number])*:*{String}* - Go through the object's values and concatenate
+to form a string. This function uses the `TEMPLATE_MIN_LINE_WIDTH` [Compiler flag](#compiler-api) value.
+* **modifier** *(String, Segment)*:*{String}* - wrap the generated JavaScript string between a
+stream modifier setup. If no modifier is specified for the given segment, the string is returned as is.
+* **processParams** *(compiledData, segValue, segKey, segments)*:*{String}* - an helper function to render
+the current segment's argument. The returned value, a string, represents the function name to call
+that will return the parameter's object value at run time. That function will expect the current context
+to be passed, or the function's behaviour will be undefined!
+* **processRenderer** *(compiledData, segValue, segKey, segments, contextSwitchable)*:*{String}* -like for
+`processParams`, an helper function that returns a string to be used at run-time to invoke a function that 
+will generate the body-ies render for the given segment. See [helper's `chunk` argument](#helper-function-arguments).
+
+**Note**: even if the template's rendering is async, the generated function returned by either `processParams`
+and `processRenderer` are *not* yieldable! and *must* be called synchronously. Both `processParams` and
+`processRenderer` behave alike; one returning a plain object, the other a body renderer.
+
+
+#### Example
+
+The actual function `this.context` is declared as (with comments added) :
+
+```javascript
+function * processContext(compiledData, segValue, segKey, segments) {
+  // if the current segment has no type (i.e. not a block segment)
+  // and it's an object with a non-empty context property
+  if (!segValue.type && segValue.context) {
+
+    // 1. get the actual context with : context(segValue.context)
+    // 2. send the context's data through the stream : OBJ_STREAM + '.write(' + ctx + '.data)'
+    // 3. wrap the stream write operation in an output modifier setup : modifer(cmdStr, segValue)
+    return modifier(OBJ_STREAM + '.write(' + context(segValue.context) + '.data);', segValue);
+  }
+
+  // not a context block, do not process (or use the next processor available)
+  return false;
+}
+```
+
+
 #### Example
 
 ```javascript
@@ -848,18 +905,34 @@ Block : {b{isbn="value"/}}
 */
 function * bookRenderer(cData, sValue, sKey, segments) {
   // note : the use of this.OBJ_ENGINE + '.b'
+  var str;
+  var paramsKey;
 
-  if (typeof segValue.params['isbn'] === 'string') {
-    return this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
-      this.quote(segValue.params['isbn']) + '));';
-  } else if (segValue.params['isbn'] && segValue.params['isbn'].context) {
-    return this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' + 
-      // segValue.params['isbn'].context should still be a string, but a context
-      // path. this.context(ctxPath) should return the proper JS string value
-      this.context(segValue.params['isbn'].context) + '.data));';
-  } else {
-    return this.OBJ_STREAM + '.write("No ISBN# in template");';
-  }
+  /**
+     First method : manual
+  */
+  //if (typeof segValue.params['isbn'] === 'string') {
+  //  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
+  //    this.quote(segValue.params['isbn']) + '));';
+  //} else if (segValue.params['isbn'] && segValue.params['isbn'].context) {
+  //  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' + 
+  //    // segValue.params['isbn'].context should still be a string, but a context
+  //    // path. this.context(ctxPath) should return the proper JS string value
+  //    this.context(segValue.params['isbn'].context) + '.data));';
+  //} else {
+  //  str = this.OBJ_STREAM + '.write("No ISBN# in template");';
+  //}
+
+  /*
+     Second method : dynamic
+  */
+  paramsKey = yield processParams(cData, sValue, sKey);
+
+  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
+     (paramsKey && (paramsKey + '(' + OBJ_CONTEXT + ').isbn||') || '') + '"No ISBN# in template"));';
+
+  // wrap the given string between a stream modifier setup using sValue.modifiers if specified
+  return this.modifier(str, sValue);
 }
 
 /**
