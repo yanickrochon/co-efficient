@@ -35,10 +35,10 @@ about it.
 and the result is quite good so far. But it *can* be improved! Also, rendering the template
 rely a lot on data contexts and some shortcuts can be made to improve performance there also.
 * **More Events** : Add events to the parser and compiler.
+* **Caching** : use a third party, swapable, caching solution for templates.
 * **Features** : Even though this project is meant to be lightweight and extendable, some
 features may still be missing. Since this project is open source, new features will come
 as needed from the user base (you). For example, a rendering/streaming timeout might be useful.
-Or perhaps built-in support for rendering any given templates from strings instead of files only.
 
 
 ## Features
@@ -114,8 +114,16 @@ while searching for the file. The function accepts a single argument, the templa
 `name`, and returns the template info or `undefined` if nothing found.
 * **render** *(name:String, data:Object)*:*{GeneratorFunction}* - render the given template
 name using `data` as context root. The function returns the rendered template as a `String`.
+* **renderText** *(template:String, data:Object)*:*{GeneratorFunction}* - render the given
+template as text using `data` as context root. The function returns the rendered template
+as a `String`.
 * **stream** *(stream:stream.Writable, name:String, data:Object, autoClose:boolean)*:
 *{GeneratorFunction}* - stream the given template name using the specified stream writer,
+and `data` as context root. If `autoClose` is set to true, the stream will be closed
+automatically once the template is done processing. Otherwise, it is left opened, and it
+is the caller's responsibility to close it. The function does not return anything.
+* **streamText** *(stream:stream.Writable, template:String, data:Object, autoClose:boolean)*:
+*{GeneratorFunction}* - stream the given template as text using the specified stream writer,
 and `data` as context root. If `autoClose` is set to true, the stream will be closed
 automatically once the template is done processing. Otherwise, it is left opened, and it
 is the caller's responsibility to close it. The function does not return anything.
@@ -126,6 +134,9 @@ allows *static* events registration through the methods : `on`, `once`, `addList
 
 **NOTE**: the public API is frozen and you cannot assigned new objects to the `Engine`
 object. (i.e. `Engine.config = { foo: true };` will not do anything.)
+
+**NOTE**: when rendering the template as text (`renderText` and `streamText`), the templates
+are *not* cached when the operation is complete. See [engine cache](#engine-cache).
 
 
 #### Engine Configuration
@@ -174,6 +185,29 @@ retrieved with `Engine.modifiers[modifier]`.
 * *[static]* **modifierUnregistered** *(String, Function)* - emitted when a given modifier is
 unregistered. The event function receives two arguments; the `modifier` id and the modifier
 `callback` function that was removed (unregistered).
+
+
+#### Engine Cache
+
+Each compiled template is automatically cached for later use. This cache exist per `engine`
+instance and may be accessed through `engin.cache`, an object holding all the cached
+template information.
+
+To cache custom template text, instead of using `renderText` or `streamText` which do not
+persiste the template in the cache, it is possible to manually assign a template as text
+to a name and render it as if it were a file. For example:
+
+```javascript
+var Engine = require('co-efficient').Engine;
+var engine = new Engine();
+
+engine.cache['foo'] = 'Hello {{name}}!';
+
+// will return 'Hello John!' if data = { name: 'John' }
+function * foo(data) {
+  return yield engine.render('foo', data);
+}
+```
 
 
 ### Context

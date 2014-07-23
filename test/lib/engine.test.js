@@ -140,6 +140,25 @@ describe('Test engine', function () {
 
   });
 
+  it('should stream template', function * () {
+    var stream = new (require('stream').PassThrough)();
+    var retVal;
+    var text = '';
+
+    stream.on('data', function (buffer) {
+      text += buffer.toString();
+    });
+
+    retVal = yield engine.stream(stream, 'if-context', {
+      foo: 'foo',
+      bar: 'bar'
+    });
+
+    assert.equal(undefined, retVal);
+
+    text.should.equal('foo\n');
+  });
+
 
   describe('Modifiers', function () {
 
@@ -201,6 +220,44 @@ describe('Test engine', function () {
 
     it('should ignore unregistering valid unknown validator', function () {
       Engine.unregisterModifier('0');
+    });
+
+  });
+
+
+  describe('inline templates', function () {
+
+    it('should render inline templates', function * () {
+      var template = '{?{foo}}bar{?{~}}null{?{/}}';
+      var text;
+
+      text = yield engine.renderText(template);
+      text.should.equal('null');
+
+      text = yield engine.renderText(template, { foo: true });
+      text.should.equal('bar');
+
+    });
+
+    it('should stream inline templates', function * () {
+      var template = '{?{foo}}bar{?{~}}null{?{/}}';
+      var stream = new (require('stream').PassThrough)();
+      var retVal;
+      var text;
+
+      stream.on('data', function (buffer) {
+        text += buffer.toString();
+      });
+
+      text = '';
+      retVal = yield engine.streamText(stream, template);
+      assert.equal(undefined, retVal);
+      text.should.equal('null');
+
+      text = '';
+      retVal = yield engine.streamText(stream, template, { foo: true });
+      assert.equal(undefined, retVal);
+      text.should.equal('bar');
     });
 
   });
