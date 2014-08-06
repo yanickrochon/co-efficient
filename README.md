@@ -163,7 +163,8 @@ start with the dot. If a string is specified, it must be comme delimited.
 * **internalEngineCreated** *(InternalEngine)* - when rendering a template, the engine will
 create an instance of an internal engine to wrap and expose some methods to the template and
 helpers. This event is called so extensions may add custom properties to the instance before
-it is frozen and send to the template renderer.
+it is frozen and send to the template renderer. A second argument, the `data` passed to the
+engine, is also passed to the event listeners.
 * **templateResolved** *(String)* - when rendering a template that has not been compiled, this
 event is emitted when a tempalte file has been successfully resolved. Useful for debugging and
 logging.
