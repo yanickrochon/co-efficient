@@ -961,7 +961,7 @@ function * bookRenderer(cData, sValue, sKey, segments) {
   /*
      Second method : dynamic
   */
-  paramsKey = yield processParams(cData, sValue, sKey);
+  paramsKey = yield this.processParams(cData, sValue, sKey);
 
   str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
      (paramsKey && (paramsKey + '(' + OBJ_CONTEXT + ').isbn||') || '') + '"No ISBN# in template"));';

@@ -17,11 +17,13 @@ describe('Test Parser', function () {
   function testParseAllAsync(success, failures, done) {
     var testComplete = 0;
     var templateCount = 0;
+    var results = [];
 
-    function checkTestComplete() {
+    function checkTestComplete(parsed) {
       testComplete++;
+      results.push(parsed);
       if (testComplete >= templateCount) {
-        done();
+        done(undefined, results);
       }
     }
 
@@ -38,7 +40,7 @@ describe('Test Parser', function () {
               if (err) console.log("FAIL", template, JSON.stringify(err, null, 2));
               assert.equal(err, null);
             }
-            checkTestComplete();
+            checkTestComplete(parsed);
           });
         })(templates[i]);
       }
@@ -488,6 +490,31 @@ describe('Test Parser', function () {
         '{t{foo}}{t{~}}{t{~}}{t{/}}',
         '{t{foo}}{t{~}}{t{~}}{t{~}}{t{/}}'
       ], function () {
+        Parser.unregisterBlockRule('t');
+        done();
+      });
+
+    });
+
+    it('should parse params only', function (done) {
+
+      Parser.registerBlockRule('t', { 
+        openingContent: 'inParams',
+        validContent: { 'params': true },
+        maxSiblings: 0,
+        selfClosing: true,
+        closeBlock: true
+      });
+
+      testParseAllAsync([
+        '{t{a="1" b="2" c=.}}foo{t{/}}',
+      ], null, function (err, results) {
+        var tSeg = results[0].segments['1'];
+
+        tSeg.params.a.should.be.equal('1');
+        tSeg.params.b.should.be.equal('2');
+        tSeg.params.c.should.be.an.Object;
+
         Parser.unregisterBlockRule('t');
         done();
       });
