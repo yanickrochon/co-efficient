@@ -1,6 +1,7 @@
 # co-efficient
 
 [![Build Status](https://travis-ci.org/yanickrochon/co-efficient.svg)](https://travis-ci.org/yanickrochon/co-efficient)
+[![Coverage Status](https://coveralls.io/repos/yanickrochon/co-efficient/badge.png)](https://coveralls.io/r/yanickrochon/co-efficient)
 
 [![NPM](https://nodei.co/npm/co-efficient.png?compact=true)](https://nodei.co/npm/co-efficient/)
 
@@ -765,7 +766,7 @@ the `toLocaleLowerCase()` function.
 * **Encode XML entities** *(`x`)* - encode all XML entities
 * **Decode XML entities** *(`X`)* - decode all XML entities
 * **Mask output** _(`*`)_ - replace every character with a star (`*`)
-* **Iterator Count modifier** *(`@`)* - returns the size of the context if it was iterated. **NOTE**: 
+* **Iterator Count modifier** *(`@`)* - returns the size of the context if it was iterated. **NOTE**:
 `{{foo.length}}` will rather return the property `length` of every array elements instead of
 the length of the array, thus this modifier. (ex: `{{foo}@}`) See [iterators](#iterators).
 
@@ -880,7 +881,7 @@ the current segment's argument. The returned value, a string, represents the fun
 that will return the parameter's object value at run time. That function will expect the current context
 to be passed, or the function's behaviour will be undefined!
 * **processRenderer** *(compiledData, segValue, segKey, segments, contextSwitchable)*:*{String}* -like for
-`processParams`, an helper function that returns a string to be used at run-time to invoke a function that 
+`processParams`, an helper function that returns a string to be used at run-time to invoke a function that
 will generate the body-ies render for the given segment. See [helper's `chunk` argument](#helper-function-arguments).
 
 **Note**: even if the template's rendering is async, the generated function returned by either `processParams`
@@ -950,7 +951,7 @@ function * bookRenderer(cData, sValue, sKey, segments) {
   //  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
   //    this.quote(segValue.params['isbn']) + '));';
   //} else if (segValue.params['isbn'] && segValue.params['isbn'].context) {
-  //  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' + 
+  //  str = this.OBJ_STREAM + '.write(yield(' + this.OBJ_ENGINE + '.b)(' +
   //    // segValue.params['isbn'].context should still be a string, but a context
   //    // path. this.context(ctxPath) should return the proper JS string value
   //    this.context(segValue.params['isbn'].context) + '.data));';
