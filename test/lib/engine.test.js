@@ -239,6 +239,27 @@ describe('Test engine', function () {
 
     });
 
+    it('should render context', function * () {
+      var template = '{{path.to.key.getter}}';
+      var context = {
+        path: {
+          to: {
+            key: {
+              get getter() {
+                return 'Hello World!';
+              }
+            }
+          }
+        }
+      };
+      var text;
+
+      text = yield engine.renderText(template, context);
+      text.should.equal('Hello World!');
+
+    });
+
+
     it('should stream inline templates', function * () {
       var template = '{?{foo}}bar{?{~}}null{?{/}}';
       var stream = new (require('stream').PassThrough)();

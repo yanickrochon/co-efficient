@@ -1,11 +1,13 @@
 {
   "name": "co-efficient",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "An Efficient and lightweight asynchronous template Engine using `co`.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --harmony"
+    "test": "mocha --harmony",
+    "test-cov": "node --harmony node_modules/istanbul-harmony/lib/cli.js cover node_modules/mocha/bin/_mocha",
+    "test-travis": "node --harmony node_modules/istanbul-harmony/lib/cli.js cover node_modules/mocha/bin/_mocha --report lcovonly"
   },
   "keywords": [
     "template",
@@ -25,13 +27,12 @@
   "dependencies": {
     "co-fs": "^1.2.0",
     "entities": "^1.1.1",
-    "error-factory": "0.0.16"
+    "error-factory": "0.1.0"
   },
   "devDependencies": {
-    "co": "^3.0.6",
-    "co-mocha": "0.0.4",
-    "mocha": "^1.20.1",
-    "semicov": "^0.1.1-2",
+    "co": "^3.1.0",
+    "co-mocha": "1.0.0",
+    "istanbul-harmony": "^0.3.0",
     "should": "^4.0.4"
   },
   "license": "MIT"
