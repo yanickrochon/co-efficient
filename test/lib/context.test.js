@@ -88,8 +88,10 @@ describe('Test context', function () {
   it('should return property context for empty path values', function () {
     var ctx = new Context(null, { index: 0 });
 
+    //console.log(JSON.stringify(ctx.getContext('index.foo.bar'), null, 2));
+
     ctx.getContext('index').should.have.ownProperty('data').and.equal(0);
-    ctx.getContext('index.foo.bar').should.have.ownProperty('data').and.eql(null);
+    ctx.getContext('index.foo.bar').should.have.ownProperty('data').and.be.undefined; //.eql(null);
   });
 
   it('should branch context', function () {
