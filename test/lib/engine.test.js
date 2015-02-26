@@ -222,7 +222,7 @@ describe('Test engine', function () {
       Engine.unregisterModifier('0');
     });
 
-    it('should skil when null or undefined'/*, function * () {
+    it('should skil when null or undefined', function * () {
       var template = '<div>{{a}h}</div><div>{{b}h}</div>';
       var text;
       var data = {
@@ -232,7 +232,7 @@ describe('Test engine', function () {
 
       text = yield engine.renderText(template, data);
       text.should.equal('<div></div><div>Hello</div>');
-    }*/);
+    });
 
   });
 
